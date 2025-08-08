@@ -1,5 +1,9 @@
-import dotenv from 'dotenv';
+/**
+ * Placeholder application entry point.
+ * Implementation will be added later.
+ */
+export function main(): void {
+  // TODO: implement application logic
+}
 
-dotenv.config();
-
-// Application entry point will go here
+export default main;
