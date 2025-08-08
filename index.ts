@@ -7,4 +7,5 @@ export function main(): void {
 }
 
 export { getV2Quote } from './src/core/v2';
+export { getV3Quote } from './src/core/v3';
 export default main;
