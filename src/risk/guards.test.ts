@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { checkGuards } from './guards';
 
 test('checkGuards returns messages when all checks pass', () => {

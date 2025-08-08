@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { JsonRpcProvider } from 'ethers';
 import { getV3Quote } from './v3';
 

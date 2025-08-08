@@ -9,7 +9,8 @@ export function main(): void {
 export {
   getV2Quote,
   simulateV2Swap,
-  submitV2Swap
+  submitV2Swap,
+  quoteOutV2
 } from './src/core/v2';
 export {
   getV3Quote,
@@ -17,6 +18,7 @@ export {
   submitV3Swap
 } from './src/core/v3';
 export { fetchCandidates } from './src/core/candidates';
+export { buildStrategy } from './src/core/strategy';
 export {
   checkSlippage,
   calcMinOut,

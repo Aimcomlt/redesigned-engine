@@ -1,3 +1,4 @@
+import { afterEach, expect, test, vi } from 'vitest';
 import { fetchCandidates } from './candidates';
 import * as v2 from './v2';
 import * as v3 from './v3';
@@ -8,11 +9,11 @@ const provider = {
 } as any;
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 test('fetchCandidates computes profit and filters by minProfitUsd', async () => {
-  jest.spyOn(v2, 'getV2Quote').mockResolvedValue({
+  vi.spyOn(v2, 'getV2Quote').mockResolvedValue({
     token0: '',
     token1: '',
     reserve0: 0n,
@@ -20,7 +21,7 @@ test('fetchCandidates computes profit and filters by minProfitUsd', async () => 
     price0: 100,
     price1: 0
   });
-  jest.spyOn(v3, 'getV3Quote').mockResolvedValue({
+  vi.spyOn(v3, 'getV3Quote').mockResolvedValue({
     token0: '',
     token1: '',
     sqrtPriceX96: 0n,
@@ -51,7 +52,7 @@ test('fetchCandidates computes profit and filters by minProfitUsd', async () => 
 });
 
 test('returns empty array when profit below threshold', async () => {
-  jest.spyOn(v2, 'getV2Quote').mockResolvedValue({
+  vi.spyOn(v2, 'getV2Quote').mockResolvedValue({
     token0: '',
     token1: '',
     reserve0: 0n,
@@ -59,7 +60,7 @@ test('returns empty array when profit below threshold', async () => {
     price0: 100,
     price1: 0
   });
-  jest.spyOn(v3, 'getV3Quote').mockResolvedValue({
+  vi.spyOn(v3, 'getV3Quote').mockResolvedValue({
     token0: '',
     token1: '',
     sqrtPriceX96: 0n,
