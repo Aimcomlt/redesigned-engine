@@ -17,4 +17,11 @@ export {
   submitV3Swap
 } from './src/core/v3';
 export { fetchCandidates } from './src/core/candidates';
+export {
+  checkSlippage,
+  calcMinOut,
+  computeSlippageAdjustedOut,
+  DEFAULT_SLIPPAGE_BPS,
+  DEFAULT_SLIPPAGE
+} from './src/risk/slippage';
 export default main;
