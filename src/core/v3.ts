@@ -1,5 +1,7 @@
 import { Contract, type Provider } from 'ethers';
 import invariant from 'tiny-invariant';
+import { checkSlippage } from '../risk/slippage';
+import type { SimResult } from './sim';
 
 const POOL_ABI = [
   'function token0() view returns (address)',
@@ -54,3 +56,36 @@ export async function getV3Quote(
 }
 
 export default { getV3Quote };
+
+export interface V3SwapParams {
+  /** Quote information for the pool */
+  quote: V3Quote;
+  /** Amount of token0 to swap */
+  amountIn: bigint;
+  /** Maximum allowed slippage in basis points */
+  slippageBps: number;
+}
+
+/**
+ * Simulates a swap on a V3 pool by shifting the current tick based on
+ * the input amount. This provides a simplified model of price impact
+ * and applies a slippage guard.
+ */
+export function simulateV3Swap({
+  quote,
+  amountIn,
+  slippageBps
+}: V3SwapParams): SimResult {
+  const price = Math.pow(1.0001, quote.tick) * (1 - quote.fee / 1_000_000);
+  const deltaTicks = Math.floor(Number(amountIn) / 1e6);
+  const newTick = quote.tick + deltaTicks;
+  const executionPrice =
+    Math.pow(1.0001, newTick) * (1 - quote.fee / 1_000_000);
+  const amountOut = Number(amountIn) * executionPrice;
+  const ok = checkSlippage(price, executionPrice, slippageBps);
+  const idealOut = Number(amountIn) * price;
+  const expectedProfit = amountOut - idealOut;
+  return { ok, expectedProfit };
+}
+
+export { simulateV3Swap };
