@@ -24,4 +24,5 @@ export {
   DEFAULT_SLIPPAGE_BPS,
   DEFAULT_SLIPPAGE
 } from './src/risk/slippage';
+export { checkGuards } from './src/risk/guards';
 export default main;
