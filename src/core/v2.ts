@@ -1,6 +1,7 @@
-import { Contract, type Provider } from 'ethers';
+import { Contract, type Provider, Wallet } from 'ethers';
 import invariant from 'tiny-invariant';
 import { checkSlippage } from '../risk/slippage';
+import { getV2Router } from '../utils/router';
 import type { SimResult } from './sim';
 
 const PAIR_ABI = [
@@ -84,4 +85,59 @@ export function simulateV2Swap({
 }
 
 export { simulateV2Swap };
+
+export interface SubmitV2SwapParams {
+  /** Wallet used to sign and send the transaction */
+  wallet: Wallet;
+  /** Amount of the input token */
+  amountIn: bigint;
+  /** Minimum acceptable output amount */
+  amountOutMinimum: bigint;
+  /** Swap path from input to output token */
+  path: string[];
+  /** Recipient of the output tokens */
+  recipient: string;
+  /** Unix timestamp after which the tx is invalid */
+  deadline: number;
+  /** Maximum fee per gas (EIP-1559) */
+  maxFeePerGas: bigint;
+  /** Maximum priority fee per gas (EIP-1559) */
+  maxPriorityFeePerGas: bigint;
+}
+
+/**
+ * Executes a Uniswap V2 swap using the router contract. The transaction
+ * enforces a deadline, minimum output amount, and requires explicit
+ * EIP-1559 fee parameters.
+ */
+export async function submitV2Swap({
+  wallet,
+  amountIn,
+  amountOutMinimum,
+  path,
+  recipient,
+  deadline,
+  maxFeePerGas,
+  maxPriorityFeePerGas
+}: SubmitV2SwapParams): Promise<string> {
+  invariant(deadline > Math.floor(Date.now() / 1000), 'deadline must be in the future');
+  invariant(amountOutMinimum > 0n, 'amountOutMinimum must be greater than zero');
+
+  const router = getV2Router(wallet);
+  const tx = await router.swapExactTokensForTokens(
+    amountIn,
+    amountOutMinimum,
+    path,
+    recipient,
+    deadline,
+    {
+      maxFeePerGas,
+      maxPriorityFeePerGas
+    }
+  );
+  await tx.wait();
+  return tx.hash;
+}
+
+export { simulateV2Swap, submitV2Swap };
 

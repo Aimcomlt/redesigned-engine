@@ -1,6 +1,7 @@
-import { Contract, type Provider } from 'ethers';
+import { Contract, type Provider, Wallet } from 'ethers';
 import invariant from 'tiny-invariant';
 import { checkSlippage } from '../risk/slippage';
+import { getV3Router } from '../utils/router';
 import type { SimResult } from './sim';
 
 const POOL_ABI = [
@@ -88,4 +89,69 @@ export function simulateV3Swap({
   return { ok, expectedProfit };
 }
 
-export { simulateV3Swap };
+export interface SubmitV3SwapParams {
+  /** Wallet used to sign and send the transaction */
+  wallet: Wallet;
+  /** Input token address */
+  tokenIn: string;
+  /** Output token address */
+  tokenOut: string;
+  /** Pool fee tier */
+  fee: number;
+  /** Recipient of the output tokens */
+  recipient: string;
+  /** Amount of tokenIn to swap */
+  amountIn: bigint;
+  /** Minimum acceptable output */
+  amountOutMinimum: bigint;
+  /** Unix timestamp after which the tx is invalid */
+  deadline: number;
+  /** Optional price limit */
+  sqrtPriceLimitX96?: bigint;
+  /** Maximum fee per gas (EIP-1559) */
+  maxFeePerGas: bigint;
+  /** Maximum priority fee per gas (EIP-1559) */
+  maxPriorityFeePerGas: bigint;
+}
+
+/**
+ * Executes a swap on a Uniswap V3 pool using the router contract.
+ * The transaction requires a deadline, minimum output amount, and
+ * explicit EIP-1559 fee parameters.
+ */
+export async function submitV3Swap({
+  wallet,
+  tokenIn,
+  tokenOut,
+  fee,
+  recipient,
+  amountIn,
+  amountOutMinimum,
+  deadline,
+  sqrtPriceLimitX96 = 0n,
+  maxFeePerGas,
+  maxPriorityFeePerGas
+}: SubmitV3SwapParams): Promise<string> {
+  invariant(deadline > Math.floor(Date.now() / 1000), 'deadline must be in the future');
+  invariant(amountOutMinimum > 0n, 'amountOutMinimum must be greater than zero');
+
+  const router = getV3Router(wallet);
+  const params = {
+    tokenIn,
+    tokenOut,
+    fee,
+    recipient,
+    deadline,
+    amountIn,
+    amountOutMinimum,
+    sqrtPriceLimitX96
+  };
+  const tx = await router.exactInputSingle(params, {
+    maxFeePerGas,
+    maxPriorityFeePerGas
+  });
+  await tx.wait();
+  return tx.hash;
+}
+
+export { simulateV3Swap, submitV3Swap };
