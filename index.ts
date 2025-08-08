@@ -28,4 +28,11 @@ export {
   DEFAULT_SLIPPAGE
 } from './src/risk/slippage';
 export { checkGuards } from './src/risk/guards';
+export { logger, withTrade } from './src/utils/logger';
+export {
+  successCounter,
+  failureCounter,
+  gasCounter,
+  register as metricsRegistry
+} from './src/utils/metrics';
 export default main;
