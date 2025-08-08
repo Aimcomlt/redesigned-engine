@@ -6,4 +6,5 @@ export function main(): void {
   // TODO: implement application logic
 }
 
+export { getV2Quote } from './src/core/v2';
 export default main;
