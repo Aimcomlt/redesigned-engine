@@ -49,6 +49,23 @@ export async function getV2Quote(
 
 export default { getV2Quote };
 
+/**
+ * Calculates the output amount for a Uniswap V2 style swap.
+ *
+ * This uses the constant product formula and applies the provided fee
+ * (in basis points) to the input amount before computing the output.
+ */
+export function quoteOutV2(
+  reserveIn: bigint,
+  reserveOut: bigint,
+  amountIn: bigint,
+  feeBps = 30
+): bigint {
+  const feeFactor = 10_000n - BigInt(feeBps);
+  const amountInWithFee = (amountIn * feeFactor) / 10_000n;
+  return (amountInWithFee * reserveOut) / (reserveIn + amountInWithFee);
+}
+
 export interface V2SwapParams {
   /** Quote information for the pool */
   quote: V2Quote;
@@ -83,9 +100,6 @@ export function simulateV2Swap({
   const expectedProfit = Number(amountOut) - idealOut;
   return { ok, expectedProfit };
 }
-
-export { simulateV2Swap };
-
 export interface SubmitV2SwapParams {
   /** Wallet used to sign and send the transaction */
   wallet: Wallet;
@@ -138,6 +152,4 @@ export async function submitV2Swap({
   await tx.wait();
   return tx.hash;
 }
-
-export { simulateV2Swap, submitV2Swap };
 

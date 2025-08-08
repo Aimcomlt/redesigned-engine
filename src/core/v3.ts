@@ -153,5 +153,3 @@ export async function submitV3Swap({
   await tx.wait();
   return tx.hash;
 }
-
-export { simulateV3Swap, submitV3Swap };
