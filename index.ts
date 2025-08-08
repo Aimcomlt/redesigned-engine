@@ -18,6 +18,7 @@ export {
   submitV3Swap
 } from './src/core/v3';
 export { fetchCandidates } from './src/core/candidates';
+export { buildCandidates, simulateCandidate } from './src/core/arbitrage';
 export { buildStrategy } from './src/core/strategy';
 export {
   checkSlippage,
