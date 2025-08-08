@@ -1,5 +1,7 @@
 import { Contract, type Provider } from 'ethers';
 import invariant from 'tiny-invariant';
+import { checkSlippage } from '../risk/slippage';
+import type { SimResult } from './sim';
 
 const PAIR_ABI = [
   'function token0() view returns (address)',
@@ -45,4 +47,41 @@ export async function getV2Quote(
 }
 
 export default { getV2Quote };
+
+export interface V2SwapParams {
+  /** Quote information for the pool */
+  quote: V2Quote;
+  /** Amount of token0 to swap */
+  amountIn: bigint;
+  /** Maximum allowed slippage in basis points */
+  slippageBps: number;
+  /** Pool fee in basis points */
+  feeBps?: number;
+}
+
+/**
+ * Simulates a swap on a V2-style pool using the constant product
+ * formula. The function models price impact based on current
+ * reserves and applies a slippage guard.
+ */
+export function simulateV2Swap({
+  quote,
+  amountIn,
+  slippageBps,
+  feeBps = 30
+}: V2SwapParams): SimResult {
+  const feeFactor = 10_000n - BigInt(feeBps);
+  const amountInWithFee = (amountIn * feeFactor) / 10_000n;
+  const k = quote.reserve0 * quote.reserve1;
+  const newReserve0 = quote.reserve0 + amountInWithFee;
+  const newReserve1 = k / newReserve0;
+  const amountOut = quote.reserve1 - newReserve1;
+  const executionPrice = Number(amountOut) / Number(amountIn);
+  const ok = checkSlippage(quote.price0, executionPrice, slippageBps);
+  const idealOut = Number(amountIn) * quote.price0;
+  const expectedProfit = Number(amountOut) - idealOut;
+  return { ok, expectedProfit };
+}
+
+export { simulateV2Swap };
 
