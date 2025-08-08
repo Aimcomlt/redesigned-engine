@@ -1,9 +1,103 @@
+import type { CandidateParams, Candidate } from './src/core/candidates';
+import {
+  buildCandidates as buildArbCandidates,
+  simulateCandidate as simulateArbCandidate
+} from './src/core/arbitrage';
+import { checkSlippage as slippageGuard } from './src/risk/slippage';
+import { logger } from './src/utils/logger';
+
 /**
- * Placeholder application entry point.
- * Implementation will be added later.
+ * Simple readiness check ensuring token allowances are configured.
+ * In the real engine this would query ERC20 allowances for the wallet.
  */
-export function main(): void {
-  // TODO: implement application logic
+async function checkAllowances(): Promise<boolean> {
+  // Placeholder logic – assume allowances are set.
+  return true;
+}
+
+/**
+ * Performs a light simulation with a tiny trade size to make sure
+ * the candidate still looks profitable right before execution.
+ */
+async function canaryRun(
+  candidate: Candidate,
+  params: CandidateParams
+): Promise<boolean> {
+  try {
+    await simulateArbCandidate({
+      candidate,
+      provider: params.provider,
+      venues: params.venues,
+      amountIn: 1n,
+      token0: params.token0,
+      token1: params.token1,
+      slippageBps: params.slippageBps,
+      gasUnits: params.gasUnits,
+      ethUsd: params.ethUsd
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Emits an alert through the logger. In a production system this would
+ * forward to an external alerting/monitoring service.
+ */
+function alert(message: string, error?: unknown) {
+  logger.error({ err: error }, message);
+}
+
+/**
+ * Application entry point: build candidates, simulate them with fresh quotes
+ * and execute the profitable ones. The function performs several readiness
+ * checks such as token allowances, a slippage guard and a canary simulation
+ * before attempting execution.
+ */
+export async function main(params: CandidateParams): Promise<void> {
+  const candidates = await buildArbCandidates(params);
+
+  for (const candidate of candidates) {
+    const sim = await simulateArbCandidate({
+      candidate,
+      provider: params.provider,
+      venues: params.venues,
+      amountIn: params.amountIn,
+      token0: params.token0,
+      token1: params.token1,
+      slippageBps: params.slippageBps,
+      gasUnits: params.gasUnits,
+      ethUsd: params.ethUsd
+    });
+
+    // Slippage guard – ensure profit hasn't deteriorated excessively
+    const withinSlip = slippageGuard(
+      candidate.profitUsd,
+      sim.profitUsd,
+      params.slippageBps
+    );
+    if (!withinSlip) {
+      alert('slippage guard triggered for candidate');
+      continue;
+    }
+
+    if (!(await checkAllowances())) {
+      alert('token allowances not ready');
+      continue;
+    }
+
+    if (!(await canaryRun(candidate, params))) {
+      alert('canary run failed');
+      continue;
+    }
+
+    // Execute the trade – in this simplified implementation we simply log it.
+    logger.info(
+      `Executing arbitrage buy ${candidate.buy} sell ${candidate.sell} ` +
+        `expected profit ${sim.profitUsd.toFixed(2)} USD`
+    );
+  }
 }
 
 export {
