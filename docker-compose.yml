@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    env_file: .env.server
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    env_file: .env.client
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+  prometheus:
+    image: prom/prometheus
+    profiles: ["monitoring"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana
+    profiles: ["monitoring"]
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus

@@ -1,0 +1,14 @@
+# Simple Node API image
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --omit=dev
+
+COPY tsconfig.json ./
+COPY server ./server
+COPY src ./src
+
+EXPOSE 3001
+CMD ["npm", "run", "server"]
