@@ -33,7 +33,8 @@ PRIVATE_KEY	Wallet private key used for execution
 CHAIN_ID	Target chain ID
 MIN_PROFIT_USD	Minimum USD profit required to trade
 SLIPPAGE_BPS	Slippage tolerance in basis points
-AUTH_TOKEN      Bearer token required for `/api/execute`
+AUTH_TOKEN      Bearer token required for `/api/execute`; requests missing or
+                with invalid `Authorization` headers receive a 401 response
 Usage
 CLI
 Run simple candidate discovery & simulation:
@@ -120,7 +121,8 @@ curl -X POST http://localhost:3001/api/simulate \
 ### `POST /api/execute`
 Runs the engine with the provided parameters. The server fails to start unless the
 `AUTH_TOKEN` environment variable is set, and requests must include the same value
-via an `Authorization: Bearer` header.
+via an `Authorization: Bearer` header. Requests without the correct token receive
+an immediate `401 Unauthorized` response before payload validation.
 
 **Example**
 

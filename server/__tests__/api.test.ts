@@ -52,6 +52,7 @@ describe('API endpoints', () => {
   beforeEach(async () => {
     vi.resetModules();
     delete process.env.EXEC_ENABLED;
+    delete process.env.AUTH_TOKEN;
     vi.doMock('../../src/core/candidates', () => {
       const fetchCandidates = vi.fn(async () => [
         { buy: 'A', sell: 'B', profitUsd: 1 },
@@ -95,6 +96,15 @@ describe('API endpoints', () => {
     expect(res.status).toBe(403);
   });
 
+  test('POST /api/execute returns 401 without token', async () => {
+    vi.resetModules();
+    process.env.EXEC_ENABLED = '1';
+    process.env.AUTH_TOKEN = 't';
+    ({ default: app } = await import('../index'));
+    const res = await request(app).post('/api/execute').send(execParams);
+    expect(res.status).toBe(401);
+  });
+
   test('POST /api/execute processes request when enabled', async () => {
     vi.resetModules();
     vi.doMock('../../src/core/candidates', () => {
@@ -107,8 +117,12 @@ describe('API endpoints', () => {
     });
     vi.doMock('../../index', () => ({ __esModule: true, default: vi.fn(async () => {}) }));
     process.env.EXEC_ENABLED = '1';
+    process.env.AUTH_TOKEN = 't';
     ({ default: app } = await import('../index'));
-    const res = await request(app).post('/api/execute').send(execParams);
+    const res = await request(app)
+      .post('/api/execute')
+      .set('Authorization', 'Bearer t')
+      .send(execParams);
     expect(res.status).toBe(500);
     const parsed = executeResponseSchema.parse(res.body);
     expect(parsed.ok).toBe(false);
