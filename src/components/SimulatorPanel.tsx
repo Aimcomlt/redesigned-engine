@@ -8,18 +8,43 @@ export default function SimulatorPanel({ candidate }: { candidate: Candidate }) 
   const { slippageBps, gasCeiling, minProfitUsd, enabled } = useSelector(
     (state: RootState) => state.execution
   );
+  const stringifyBigInts = (obj: any) =>
+    JSON.parse(
+      JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    );
+
   const simulate = useMutation({
-    mutationFn: () => simulateApi({ candidate, params: {} } as any),
+    mutationFn: async () => {
+      try {
+        return await simulateApi({
+          candidate: stringifyBigInts(candidate),
+          params: {},
+        } as any);
+      } catch (err) {
+        throw err;
+      }
+    },
   });
 
   const execute = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate, params: {} }),
-      });
-      return res.json();
+      try {
+        const res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            { candidate: stringifyBigInts(candidate), params: {} },
+            (_, v) => (typeof v === 'bigint' ? v.toString() : v)
+          ),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error);
+        }
+        return data;
+      } catch (err) {
+        throw err;
+      }
     },
   });
 
@@ -50,6 +75,10 @@ export default function SimulatorPanel({ candidate }: { candidate: Candidate }) 
       >
         Execute
       </button>
+      {simulate.error && (
+        <div className="error">{String(simulate.error)}</div>
+      )}
+      {execute.error && <div className="error">{String(execute.error)}</div>}
       {simulate.data && (
         <pre className="bg-gray-100 p-2 rounded overflow-auto">
           {JSON.stringify(simulate.data, null, 2)}

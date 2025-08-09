@@ -13,7 +13,12 @@ export default function SettingsForm() {
 
   const save = useMutation({
     mutationFn: () =>
-      fetchCandidates({ token0, token1, venue, amount } as any),
+      fetchCandidates({
+        token0,
+        token1,
+        venue,
+        amount: String(amount),
+      } as any),
   });
 
   return (
@@ -43,6 +48,7 @@ export default function SettingsForm() {
       <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
         Save
       </button>
+      {save.error && <div className="error">{String(save.error)}</div>}
       {save.data && <div className="text-sm text-gray-500">Saved</div>}
     </form>
   );
