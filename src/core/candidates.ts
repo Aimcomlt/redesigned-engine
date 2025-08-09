@@ -2,7 +2,7 @@ import { type Provider, parseUnits } from 'ethers';
 import { getV2Quote } from './v2';
 import { getV3Quote } from './v3';
 import { estimateGasUsd } from '../utils/gas';
-import { fromQ96 } from '../utils/fixed';
+import { fromQ96, toQ96 } from '../utils/fixed';
 import type { TokenInfo } from '../utils/prices';
 import { engineEvents } from '../utils/hooks';
 
@@ -78,7 +78,6 @@ export async function fetchCandidates({
   );
 
   const gasUsd = await estimateGasUsd({ provider, gasUnits, ethUsd });
-  const token1Usd = fromQ96(token1.priceUsd);
 
   const candidates: Candidate[] = [];
   for (let i = 0; i < quotes.length; i++) {
@@ -87,10 +86,8 @@ export async function fetchCandidates({
       const buyPrice = (quotes[i].price * (baseBps + slipBps)) / baseBps;
       const sellPrice = (quotes[j].price * (baseBps - slipBps)) / baseBps;
       const profitToken1 = ((sellPrice - buyPrice) * amountIn) / amountScale;
-      const whole = profitToken1 / priceScale;
-      const frac = profitToken1 % priceScale;
-      const profitToken1Num = Number(whole) + Number(frac) / Number(priceScale);
-      const profitUsd = profitToken1Num * token1Usd - gasUsd;
+      const profitUsdQ96 = (profitToken1 * token1.priceUsd) / priceScale;
+      const profitUsd = fromQ96(profitUsdQ96 - toQ96(gasUsd));
       if (profitUsd >= minProfitUsd) {
         candidates.push({
           buy: quotes[i].venue,

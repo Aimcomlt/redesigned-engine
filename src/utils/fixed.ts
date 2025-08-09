@@ -1,13 +1,20 @@
+import { parseUnits } from 'ethers';
+
 /**
  * 2^96 scaling factor used for Q64.96 fixed-point numbers.
  */
 export const Q96 = 1n << 96n;
 
 /**
- * Converts an integer to Q64.96 fixed-point format by multiplying by 2^96.
+ * Converts a numeric value to Q64.96 fixed-point format by multiplying by 2^96.
+ * Floating point numbers are converted using 18 decimals of precision.
  */
 export function toQ96(value: bigint | number): bigint {
-  return BigInt(value) * Q96;
+  if (typeof value === 'bigint') {
+    return value * Q96;
+  }
+  const scaled = parseUnits(value.toString(), 18);
+  return (scaled * Q96) / 10n ** 18n;
 }
 
 /**
