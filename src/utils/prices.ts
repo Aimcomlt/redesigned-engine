@@ -1,6 +1,8 @@
 import { fromQ96 } from './fixed';
 
 export interface TokenInfo {
+  /** ERC20 contract address */
+  address?: string;
   /** Number of decimals the token uses */
   decimals: number;
   /** USD price per whole token encoded as Q64.96 */

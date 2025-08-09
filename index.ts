@@ -5,14 +5,52 @@ import {
 } from './src/core/arbitrage';
 import { checkSlippage as slippageGuard } from './src/risk/slippage';
 import { logger } from './src/utils/logger';
+import { Contract } from 'ethers';
 
 /**
  * Simple readiness check ensuring token allowances are configured.
  * In the real engine this would query ERC20 allowances for the wallet.
  */
-async function checkAllowances(): Promise<boolean> {
-  // Placeholder logic – assume allowances are set.
-  return true;
+const ERC20_ABI = [
+  'function allowance(address owner, address spender) view returns (uint256)'
+];
+
+async function checkAllowances(params: CandidateParams): Promise<boolean> {
+  try {
+    const owner = await params.provider.getSigner().getAddress();
+    const token0 = params.token0.address;
+    const token1 = params.token1.address;
+
+    if (!token0 || !token1) {
+      logger.error('token addresses missing');
+      return false;
+    }
+
+    const token0Contract = new Contract(token0, ERC20_ABI, params.provider);
+    const token1Contract = new Contract(token1, ERC20_ABI, params.provider);
+
+    for (const venue of params.venues) {
+      const [allow0, allow1] = await Promise.all([
+        token0Contract.allowance(owner, venue.address) as Promise<bigint>,
+        token1Contract.allowance(owner, venue.address) as Promise<bigint>
+      ]);
+
+      if (allow0 < params.amountIn) {
+        logger.error(`insufficient allowance for token0 spender ${venue.address}`);
+        return false;
+      }
+
+      if (allow1 < params.amountIn) {
+        logger.error(`insufficient allowance for token1 spender ${venue.address}`);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    logger.error({ err }, 'failed to check allowances');
+    return false;
+  }
 }
 
 /**
@@ -82,7 +120,7 @@ export async function main(params: CandidateParams): Promise<void> {
       continue;
     }
 
-    if (!(await checkAllowances())) {
+    if (!(await checkAllowances(params))) {
       alert('token allowances not ready');
       continue;
     }
@@ -129,4 +167,5 @@ export {
   gasCounter,
   register as metricsRegistry
 } from './src/utils/metrics';
+export { checkAllowances };
 export default main;
