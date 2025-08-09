@@ -6,6 +6,7 @@ import {
 import { checkSlippage as slippageGuard } from './src/risk/slippage';
 import { logger } from './src/utils/logger';
 import { Contract } from 'ethers';
+import { successCounter, failureCounter, gasCounter } from './src/utils/metrics';
 
 /**
  * Simple readiness check ensuring token allowances are configured.
@@ -117,16 +118,19 @@ export async function main(params: CandidateParams): Promise<void> {
     );
     if (!withinSlip) {
       alert('slippage guard triggered for candidate');
+      failureCounter.inc();
       continue;
     }
 
     if (!(await checkAllowances(params))) {
       alert('token allowances not ready');
+      failureCounter.inc();
       continue;
     }
 
     if (!(await canaryRun(candidate, params))) {
       alert('canary run failed');
+      failureCounter.inc();
       continue;
     }
 
@@ -135,6 +139,8 @@ export async function main(params: CandidateParams): Promise<void> {
       `Executing arbitrage buy ${candidate.buy} sell ${candidate.sell} ` +
         `expected profit ${sim.profitUsd.toFixed(2)} USD`
     );
+    successCounter.inc();
+    gasCounter.inc(Number(params.gasUnits));
   }
 }
 
