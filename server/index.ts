@@ -9,6 +9,7 @@ import { saveSettings } from "../src/core/settings";
 import type { CandidateParamsInput, CandidatesRequest, SimulateRequest, ExecuteRequest } from "./schemas";
 import { candidatesRequestSchema, simulateRequestSchema, executeRequestSchema } from "./schemas";
 import type { Candidate } from "../src/core/candidates";
+import { stream } from "./stream";
 
 const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
   const r = schema.safeParse(v);
@@ -23,6 +24,9 @@ const AUTH_HEADER = Buffer.from(`Bearer ${token}`);
 
 const app = express();
 app.use(express.json());
+
+// Server-Sent Events stream for candidates and logs
+app.get("/api/stream", stream);
 
 app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
