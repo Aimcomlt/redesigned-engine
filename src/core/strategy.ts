@@ -52,14 +52,19 @@ function simulate(_ctx: StrategyCtx, c: Candidate): { expectedProfitUsd: number 
   return { expectedProfitUsd: c.expectedProfitUsd };
 }
 
-export async function runLoop(ctx: StrategyCtx): Promise<void> {
-  for (;;) {
-    const candidates = computeCandidates(ctx);
-    const profitable: Candidate[] = [];
-    for (const c of candidates) {
-      const s = simulate(ctx, c);
-      if (s.expectedProfitUsd > ctx.minProfitUsd) profitable.push({ ...c });
+export function runLoop(ctx: StrategyCtx): Promise<void> & { return: () => void } {
+  let stop = false;
+  const loop: Promise<void> & { return: () => void } = (async () => {
+    while (!stop) {
+      const candidates = computeCandidates(ctx);
+      const profitable: Candidate[] = [];
+      for (const c of candidates) {
+        const s = simulate(ctx, c);
+        if (s.expectedProfitUsd > ctx.minProfitUsd) profitable.push({ ...c });
+      }
+      await new Promise(r => setTimeout(r, 200));
     }
-    await new Promise(r => setTimeout(r, 200));
-  }
+  })() as any;
+  loop.return = () => { stop = true; };
+  return loop;
 }

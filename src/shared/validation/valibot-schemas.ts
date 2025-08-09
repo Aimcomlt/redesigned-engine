@@ -1,16 +1,17 @@
 import {
   object, string, number, array, union, literal, regex,
-  minValue, maxValue, boolean, optional, record, safeParse, parse
+  minValue, maxValue, minLength, boolean, optional, record,
+  safeParse, parse, pipe
 } from "valibot";
 
-export const Address = string([regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address")]);
-export const BigintString = string([regex(/^\d+$/, "Expected bigint as string")]);
-export const HexBytes = string([regex(/^0x[0-9a-fA-F]*$/, "Invalid hex bytes")]);
+export const Address = pipe(string(), regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address"));
+export const BigintString = pipe(string(), regex(/^\d+$/, "Expected bigint as string"));
+export const HexBytes = pipe(string(), regex(/^0x[0-9a-fA-F]*$/, "Invalid hex bytes"));
 
 export const Token = object({
   address: Address,
   symbol: string(),
-  decimals: number([minValue(0), maxValue(255)]),
+  decimals: pipe(number(), minValue(0), maxValue(255)),
 });
 
 export const Venue = object({
@@ -20,14 +21,14 @@ export const Venue = object({
 });
 
 export const CandidatesInput = object({
-  venues: array(Venue, [minValue(1)]),
+  venues: pipe(array(Venue), minLength(1)),
   token0: Token,
   token1: Token,
   amountIn: BigintString,
-  slippageBps: number([minValue(0), maxValue(2000)]),
+  slippageBps: pipe(number(), minValue(0), maxValue(2000)),
   gasUnits: BigintString,
-  ethUsd: number([minValue(0.000001)]),
-  minProfitUsd: number([minValue(0.01)]),
+  ethUsd: pipe(number(), minValue(0.000001)),
+  minProfitUsd: pipe(number(), minValue(0.01)),
   tag: optional(string())
 });
 
@@ -36,7 +37,7 @@ export const CandidateShape = object({
   sell: string(),
   amountIn: BigintString,
   expectedOut: BigintString,
-  gasUsd: number([minValue(0)]),
+  gasUsd: pipe(number(), minValue(0)),
   profitUsd: number(),
   meta: optional(record(string(), union([string(), number(), boolean()])))
 });
@@ -47,15 +48,15 @@ export const ExecuteInput = object({
   routeCalldata: HexBytes,
   maxFeePerGas: BigintString,
   maxPriorityFeePerGas: BigintString,
-  deadline: number([minValue(0)]),
+  deadline: pipe(number(), minValue(0)),
   dryRun: optional(boolean())
 });
 
 export const SettingsInput = object({
-  chainId: number([minValue(1)]),
+  chainId: pipe(number(), minValue(1)),
   rpcUrl: string(),
-  minProfitUsd: number([minValue(0.01)]),
-  slippageBps: number([minValue(0), maxValue(2000)]),
+  minProfitUsd: pipe(number(), minValue(0.01)),
+  slippageBps: pipe(number(), minValue(0), maxValue(2000)),
   gasUnits: BigintString,
 });
 
