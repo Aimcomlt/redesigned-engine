@@ -21,7 +21,13 @@ async function main() {
   const provider = new JsonRpcProvider(rpc);
 
   const venuesJson = getArg('venues') ?? getEnv('VENUES') ?? '[]';
-  const venues: VenueConfig[] = JSON.parse(venuesJson);
+  let venues: VenueConfig[];
+  try {
+    venues = JSON.parse(venuesJson);
+  } catch {
+    console.error('Invalid venues JSON');
+    process.exit(1);
+  }
 
   const amountInStr = getArg('amount-in') ?? getEnv('AMOUNT_IN') ?? '0';
   const amountIn = BigInt(amountInStr);
