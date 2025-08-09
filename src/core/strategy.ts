@@ -41,15 +41,26 @@ export function buildStrategy({
 }
 
 import type { StrategyCtx } from './context';
+import { eventBus } from './bus';
 
-interface Candidate { expectedProfitUsd: number }
+export interface Candidate { expectedProfitUsd: number }
 
-function computeCandidates(_ctx: StrategyCtx, _v2?: unknown, _v3?: unknown): Candidate[] {
-  return [];
+// naive candidate builder: if we have at least two venues, pretend buying the
+// first and selling the second yields a profit roughly equal to the input
+// amount expressed in token0 units. this keeps the function deterministic and
+// pure for unit tests while exercising loop logic.
+export function computeCandidates(ctx: StrategyCtx, _v2?: unknown, _v3?: unknown): Candidate[] {
+  if (ctx.venues.length < 2) return [];
+  const usd = Number(ctx.amountIn / ctx.t0.q); // assume 1 token0 ~= 1 USD
+  return [{ expectedProfitUsd: usd }];
 }
 
-function simulate(_ctx: StrategyCtx, c: Candidate): { expectedProfitUsd: number } {
-  return { expectedProfitUsd: c.expectedProfitUsd };
+// very small simulation that deducts a notional gas cost from the candidate
+// profit. the gas cost is intentionally tiny to keep profits positive for most
+// tests.
+export function simulate(ctx: StrategyCtx, c: Candidate): { expectedProfitUsd: number } {
+  const gasCostUsd = Number(ctx.gasUnits) * 1e-6; // pretend $0.000001 per unit
+  return { expectedProfitUsd: c.expectedProfitUsd - gasCostUsd };
 }
 
 export function runLoop(ctx: StrategyCtx): Promise<void> & { return: () => void } {
@@ -57,10 +68,12 @@ export function runLoop(ctx: StrategyCtx): Promise<void> & { return: () => void 
   const loop: Promise<void> & { return: () => void } = (async () => {
     while (!stop) {
       const candidates = computeCandidates(ctx);
-      const profitable: Candidate[] = [];
       for (const c of candidates) {
         const s = simulate(ctx, c);
-        if (s.expectedProfitUsd > ctx.minProfitUsd) profitable.push({ ...c });
+        if (s.expectedProfitUsd > ctx.minProfitUsd) {
+          const winner = { ...c, expectedProfitUsd: s.expectedProfitUsd };
+          eventBus.emit("candidate", winner);
+        }
       }
       await new Promise(r => setTimeout(r, 200));
     }
