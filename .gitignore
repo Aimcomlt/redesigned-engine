@@ -29,3 +29,4 @@ yarn-error.log*
 
 # build artifacts
 /dist
+settings.json
