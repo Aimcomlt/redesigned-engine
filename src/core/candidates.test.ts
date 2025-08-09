@@ -37,8 +37,8 @@ test('fetchCandidates computes profit and filters by minProfitUsd', async () => 
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: 1n * 10n ** 18n,
-    token0: { decimals: 18, priceUsd: toQ96(2000) },
-    token1: { decimals: 6, priceUsd: toQ96(1) },
+    token0: { address: '0x0000000000000000000000000000000000000001', decimals: 18, priceUsd: toQ96(2000) },
+    token1: { address: '0x0000000000000000000000000000000000000002', decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,
@@ -76,8 +76,8 @@ test('returns empty array when profit below threshold', async () => {
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: 1n * 10n ** 18n,
-    token0: { decimals: 18, priceUsd: toQ96(2000) },
-    token1: { decimals: 6, priceUsd: toQ96(1) },
+    token0: { address: '0x0000000000000000000000000000000000000001', decimals: 18, priceUsd: toQ96(2000) },
+    token1: { address: '0x0000000000000000000000000000000000000002', decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,
@@ -113,8 +113,8 @@ test('handles amountIn larger than Number.MAX_SAFE_INTEGER', async () => {
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: hugeAmount,
-    token0: { decimals: 18, priceUsd: toQ96(2000) },
-    token1: { decimals: 6, priceUsd: toQ96(1) },
+    token0: { address: '0x0000000000000000000000000000000000000001', decimals: 18, priceUsd: toQ96(2000) },
+    token1: { address: '0x0000000000000000000000000000000000000002', decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,

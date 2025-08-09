@@ -42,8 +42,16 @@ const baseParams = {
     },
   ],
   amountIn: '1',
-  token0: { decimals: 18, priceUsd: '1' },
-  token1: { decimals: 6, priceUsd: '1' },
+  token0: {
+    address: '0x00000000000000000000000000000000000000aa',
+    decimals: 18,
+    priceUsd: '1'
+  },
+  token1: {
+    address: '0x00000000000000000000000000000000000000bb',
+    decimals: 6,
+    priceUsd: '1'
+  },
   slippageBps: 0,
   gasUnits: '21000',
   ethUsd: 1000,

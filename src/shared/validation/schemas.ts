@@ -5,6 +5,7 @@ export const Address = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 export const BigintString = z.string().regex(/^\d+$/);
 
 export const TokenSchema = z.object({
+  address: Address,
   decimals: z.number(),
   priceUsd: BigintString,
 });
