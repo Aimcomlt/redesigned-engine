@@ -11,26 +11,37 @@ export default function ExecutionToggle() {
 
   const exec = useMutation({
     mutationFn: async (next: boolean) => {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: next }),
-      });
-      return res.json();
+      try {
+        const res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: next }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error);
+        }
+        return data;
+      } catch (err) {
+        throw err;
+      }
     },
   });
 
   if (enabled) {
     return (
-      <button
-        onClick={() => {
-          dispatch(setEnabledAction(false));
-          exec.mutate(false);
-        }}
-        className="bg-red-500 text-white px-4 py-2 rounded"
-      >
-        Disable Execution
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={() => {
+            dispatch(setEnabledAction(false));
+            exec.mutate(false);
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Disable Execution
+        </button>
+        {exec.error && <div className="error">{String(exec.error)}</div>}
+      </div>
     );
   }
 
@@ -43,17 +54,20 @@ export default function ExecutionToggle() {
         placeholder="Type ENABLE"
         className="border p-1 rounded text-black"
       />
-      <button
-        onClick={() => {
-          dispatch(setEnabledAction(true));
-          exec.mutate(true);
-          setConfirm('');
-        }}
-        disabled={confirm !== 'ENABLE'}
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-      >
-        Enable Execution
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={() => {
+            dispatch(setEnabledAction(true));
+            exec.mutate(true);
+            setConfirm('');
+          }}
+          disabled={confirm !== 'ENABLE'}
+          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          Enable Execution
+        </button>
+        {exec.error && <div className="error">{String(exec.error)}</div>}
+      </div>
     </div>
   );
 }

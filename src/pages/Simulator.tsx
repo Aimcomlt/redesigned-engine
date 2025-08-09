@@ -5,7 +5,7 @@ import SimulatorPanel from '../components/SimulatorPanel';
 import { fetchCandidates } from '../lib/api';
 
 export default function Simulator() {
-  const { data } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ['candidates'],
     queryFn: () => fetchCandidates({} as any),
   });
@@ -15,6 +15,7 @@ export default function Simulator() {
 
   return (
     <div className="p-4 grid gap-4 md:grid-cols-2">
+      {error && <div className="error">{String(error)}</div>}
       <CandidateTable candidates={candidates} onSelect={setSelected} />
       {selected && <SimulatorPanel candidate={selected} />}
     </div>

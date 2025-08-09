@@ -8,12 +8,20 @@ export default function StrategyEditor() {
   const enabled = useSelector((state: RootState) => state.execution.enabled);
   const save = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ strategy: text }),
-      });
-      return res.json();
+      try {
+        const res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strategy: text }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error);
+        }
+        return data;
+      } catch (err) {
+        throw err;
+      }
     },
   });
 
@@ -38,6 +46,7 @@ export default function StrategyEditor() {
       >
         Save
       </button>
+      {save.error && <div className="error">{String(save.error)}</div>}
       {save.data && <div className="text-sm text-gray-500">Saved</div>}
     </form>
   );
