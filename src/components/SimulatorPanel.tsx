@@ -1,9 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import type { Candidate } from './CandidateTable';
-import { useExecutionStore } from '../store/useExecutionStore';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 export default function SimulatorPanel({ candidate }: { candidate: Candidate }) {
-  const { slippageBps, gasCeiling, minProfitUsd, enabled } = useExecutionStore();
+  const { slippageBps, gasCeiling, minProfitUsd, enabled } = useSelector(
+    (state: RootState) => state.execution
+  );
   const simulate = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/simulate', {

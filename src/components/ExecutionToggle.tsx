@@ -1,10 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useExecutionStore } from '../store/useExecutionStore';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { setEnabled as setEnabledAction } from '../store/executionSlice';
 
 export default function ExecutionToggle() {
-  const enabled = useExecutionStore((s) => s.enabled);
-  const setEnabled = useExecutionStore((s) => s.setEnabled);
+  const enabled = useSelector((state: RootState) => state.execution.enabled);
+  const dispatch = useDispatch<AppDispatch>();
   const [confirm, setConfirm] = useState('');
 
   const exec = useMutation({
@@ -22,7 +24,7 @@ export default function ExecutionToggle() {
     return (
       <button
         onClick={() => {
-          setEnabled(false);
+          dispatch(setEnabledAction(false));
           exec.mutate(false);
         }}
         className="bg-red-500 text-white px-4 py-2 rounded"
@@ -43,7 +45,7 @@ export default function ExecutionToggle() {
       />
       <button
         onClick={() => {
-          setEnabled(true);
+          dispatch(setEnabledAction(true));
           exec.mutate(true);
           setConfirm('');
         }}

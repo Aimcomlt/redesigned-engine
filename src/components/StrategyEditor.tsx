@@ -1,10 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useExecutionStore } from '../store/useExecutionStore';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 export default function StrategyEditor() {
   const [text, setText] = useState('');
-  const enabled = useExecutionStore((s) => s.enabled);
+  const enabled = useSelector((state: RootState) => state.execution.enabled);
   const save = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/execute', {
