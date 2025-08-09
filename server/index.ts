@@ -42,7 +42,8 @@ app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesReque
 
 app.post("/api/simulate", validateBody(wrap<SimulateRequest>(simulateRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
-  res.json(await simulateCandidate(req.parsed));
+  const params = buildSimulateParams(req.parsed.params, req.parsed.candidate);
+  res.json(await simulateCandidate(params));
 });
 
 app.post("/api/execute", execute);

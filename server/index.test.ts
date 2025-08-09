@@ -1,4 +1,5 @@
 import { expect, expectTypeOf, test, beforeAll } from 'vitest';
+import { JsonRpcProvider } from 'ethers';
 import type { Candidate } from '../src/core/candidates';
 import type { CandidateParamsInput } from './schemas';
 import type { SimulateCandidateParams } from '../src/core/arbitrage';
@@ -25,6 +26,14 @@ test('buildSimulateParams returns SimulateCandidateParams', () => {
   const candidate: Candidate = { buy: 'A', sell: 'B', profitUsd: 0 };
   const params = buildSimulateParams(body, candidate);
   expect(params.candidate).toEqual(candidate);
+  expect(params.provider).toBeInstanceOf(JsonRpcProvider);
+  expect(params.venues).toEqual(body.venues);
+  expect(params.amountIn).toBe(BigInt(body.amountIn));
+  expect(params.token0).toEqual({ ...body.token0, priceUsd: BigInt(body.token0.priceUsd) });
+  expect(params.token1).toEqual({ ...body.token1, priceUsd: BigInt(body.token1.priceUsd) });
+  expect(params.slippageBps).toBe(body.slippageBps);
+  expect(params.gasUnits).toBe(BigInt(body.gasUnits));
+  expect(params.ethUsd).toBe(body.ethUsd);
   expect((params as any).minProfitUsd).toBeUndefined();
   expectTypeOf(params).toEqualTypeOf<SimulateCandidateParams>();
 });
