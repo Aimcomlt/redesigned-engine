@@ -1,6 +1,7 @@
 import express from "express";
 import { json } from "body-parser";
 import { JsonRpcProvider } from "ethers";
+import { timingSafeEqual } from "crypto";
 import { validateBody } from "./middleware/validate";
 import { fetchCandidates } from "../src/core/candidates";
 import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
@@ -14,6 +15,12 @@ const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?:
   const r = schema.safeParse(v);
   return r.success ? { success: true, data: r.data as T } : { success: false, error: r.error?.message };
 };
+
+const token = process.env.AUTH_TOKEN;
+if (!token) {
+  throw new Error("AUTH_TOKEN env var is required");
+}
+const AUTH_HEADER = Buffer.from(`Bearer ${token}`);
 
 const app = express();
 app.use(json());
@@ -43,9 +50,9 @@ app.post("/api/simulate", validateBody(wrap<SimulateRequest>(simulateRequestSche
 });
 
 app.post("/api/execute", validateBody(wrap<ExecuteRequest>(executeRequestSchema)), async (req, res) => {
-  const auth = req.headers['authorization'];
-  if (auth !== `Bearer ${process.env.AUTH_TOKEN}`) {
-    return res.status(401).json({ error: 'unauthorized' });
+  const header = Buffer.from(typeof req.headers["authorization"] === "string" ? req.headers["authorization"] : "");
+  if (header.length !== AUTH_HEADER.length || !timingSafeEqual(header, AUTH_HEADER)) {
+    return res.status(401).json({ error: "unauthorized" });
   }
   // @ts-expect-error injected
   res.json(await executeTrade(req.parsed));
