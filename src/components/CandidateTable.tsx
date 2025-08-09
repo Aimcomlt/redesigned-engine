@@ -1,32 +1,38 @@
 export interface Candidate {
-  id: string;
-  profitUsd: number;
+  id?: string;
+  profitUsd?: number;
   [key: string]: any;
 }
 
 interface CandidateTableProps {
-  candidates: Candidate[];
-  onSelect: (c: Candidate) => void;
+  rows?: Candidate[];
 }
 
-export default function CandidateTable({ candidates, onSelect }: CandidateTableProps) {
+export default function CandidateTable({ rows = [] }: CandidateTableProps) {
+  if (!rows.length) return <p>No candidates yet.</p>;
   return (
-    <table className="min-w-full text-left border">
-      <thead className="bg-gray-100">
+    <table className="table">
+      <thead>
         <tr>
-          <th className="p-2">ID</th>
-          <th className="p-2">Profit (USD)</th>
+          <th>Buy</th>
+          <th>Sell</th>
+          <th>In</th>
+          <th>Out</th>
+          <th>Gas USD</th>
+          <th>Profit USD</th>
         </tr>
       </thead>
       <tbody>
-        {candidates.map((c) => (
-          <tr
-            key={c.id}
-            className="hover:bg-gray-50 cursor-pointer"
-            onClick={() => onSelect(c)}
-          >
-            <td className="p-2">{c.id}</td>
-            <td className="p-2">{c.profitUsd}</td>
+        {rows.map((c, i) => (
+          <tr key={i}>
+            <td>{c.buy}</td>
+            <td>{c.sell}</td>
+            <td>{c.amountIn}</td>
+            <td>{c.expectedOut}</td>
+            <td>{Number(c.gasUsd).toFixed?.(2) ?? c.gasUsd}</td>
+            <td>
+              <b>{Number(c.profitUsd).toFixed?.(2) ?? c.profitUsd}</b>
+            </td>
           </tr>
         ))}
       </tbody>
