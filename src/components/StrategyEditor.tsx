@@ -1,8 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useExecutionStore } from '../store/useExecutionStore';
 
 export default function StrategyEditor() {
   const [text, setText] = useState('');
+  const enabled = useExecutionStore((s) => s.enabled);
   const save = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/execute', {
@@ -30,7 +32,8 @@ export default function StrategyEditor() {
       />
       <button
         type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded"
+        disabled={!enabled}
+        className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
       >
         Save
       </button>
