@@ -38,3 +38,10 @@ export function mulQ64x96(a: bigint, b: bigint): bigint {
 export function divQ64x96(a: bigint, b: bigint): bigint {
   return (a * Q96) / b;
 }
+
+/**
+ * Converts a bigint value to a JavaScript number.
+ */
+export function fromBigInt(value: bigint): number {
+  return Number(value);
+}

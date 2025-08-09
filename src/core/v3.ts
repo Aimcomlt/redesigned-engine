@@ -1,8 +1,9 @@
 import { Contract, type Provider, Wallet } from 'ethers';
 import invariant from 'tiny-invariant';
-import { checkSlippage } from '../risk/slippage';
+import { BPS_PER_UNIT } from '../risk/slippage';
 import { getV3Router } from '../utils/router';
 import { engineEvents } from '../utils/hooks';
+import { Q96, fromQ96, fromBigInt } from '../utils/fixed';
 import type { SimResult } from './sim';
 
 const POOL_ABI = [
@@ -49,10 +50,10 @@ export async function getV3Quote(
 
   invariant(sqrtPriceX96 > 0n, 'Pool has no liquidity');
 
-  const priceBeforeFee = Number(
-    (sqrtPriceX96 * sqrtPriceX96) / (1n << 192n)
-  );
-  const price = priceBeforeFee * (1 - fee / 1_000_000);
+  const priceX96 = (sqrtPriceX96 * sqrtPriceX96) / Q96;
+  const feeFactor = 1_000_000n - BigInt(fee);
+  const priceWithFeeX96 = (priceX96 * feeFactor) / 1_000_000n;
+  const price = fromQ96(priceWithFeeX96);
 
   const quote = { token0, token1, sqrtPriceX96, tick, fee, price };
   engineEvents.emit('quote', { type: 'v3', pool, quote });
@@ -60,6 +61,24 @@ export async function getV3Quote(
 }
 
 export default { getV3Quote };
+
+const WAD = 10n ** 18n;
+
+function pow1_0001(tick: bigint): bigint {
+  const base = (10001n * WAD) / 10000n;
+  let result = WAD;
+  let b = base;
+  let e = tick < 0n ? -tick : tick;
+  while (e > 0n) {
+    if (e & 1n) result = (result * b) / WAD;
+    b = (b * b) / WAD;
+    e >>= 1n;
+  }
+  if (tick < 0n) {
+    result = (WAD * WAD) / result;
+  }
+  return result;
+}
 
 export interface V3SwapParams {
   /** Quote information for the pool */
@@ -80,15 +99,17 @@ export function simulateV3Swap({
   amountIn,
   slippageBps
 }: V3SwapParams): SimResult {
-  const price = Math.pow(1.0001, quote.tick) * (1 - quote.fee / 1_000_000);
-  const deltaTicks = Math.floor(Number(amountIn) / 1e6);
-  const newTick = quote.tick + deltaTicks;
-  const executionPrice =
-    Math.pow(1.0001, newTick) * (1 - quote.fee / 1_000_000);
-  const amountOut = Number(amountIn) * executionPrice;
-  const ok = checkSlippage(price, executionPrice, slippageBps);
-  const idealOut = Number(amountIn) * price;
-  const expectedProfit = amountOut - idealOut;
+  const feeFactor = 1_000_000n - BigInt(quote.fee);
+  const priceWad = (pow1_0001(BigInt(quote.tick)) * feeFactor) / 1_000_000n;
+  const deltaTicks = amountIn / 1_000_000n;
+  const newPriceWad =
+    (pow1_0001(BigInt(quote.tick) + deltaTicks) * feeFactor) / 1_000_000n;
+  const amountOut = (amountIn * newPriceWad) / WAD;
+  const idealOut = (amountIn * priceWad) / WAD;
+  const diffPrice =
+    priceWad > newPriceWad ? priceWad - newPriceWad : newPriceWad - priceWad;
+  const ok = diffPrice * BPS_PER_UNIT <= priceWad * BigInt(slippageBps);
+  const expectedProfit = fromBigInt(amountOut - idealOut);
   return { ok, expectedProfit };
 }
 
