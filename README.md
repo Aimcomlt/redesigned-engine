@@ -66,6 +66,29 @@ await main({
   ethUsd: 3200,
   minProfitUsd: 5
 });
+Streaming API
+The server exposes a Server-Sent Events endpoint at `/api/stream`.
+It broadcasts:
+
+* `block` – new block numbers from the connected chain
+* `quote` – latest price quotes used by the engine
+* `candidates` – recomputed arbitrage candidates
+* `heartbeat` – keep-alive message every 15s
+
+Clients should reconnect when the connection closes. Browsers using
+`EventSource` do this automatically and will resume listening after a
+disconnect.
+
+```js
+const stream = new EventSource('http://localhost:3001/api/stream');
+stream.addEventListener('heartbeat', () => {
+  // heartbeat received – connection alive
+});
+stream.addEventListener('block', (e) => {
+  console.log('new block', JSON.parse(e.data));
+});
+```
+
 Testing
 npm test          # runs Vitest suite
 Project Structure

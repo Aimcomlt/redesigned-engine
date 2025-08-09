@@ -2,6 +2,7 @@ import { Contract, type Provider, Wallet } from 'ethers';
 import invariant from 'tiny-invariant';
 import { checkSlippage } from '../risk/slippage';
 import { getV3Router } from '../utils/router';
+import { engineEvents } from '../utils/hooks';
 import type { SimResult } from './sim';
 
 const POOL_ABI = [
@@ -53,7 +54,9 @@ export async function getV3Quote(
   );
   const price = priceBeforeFee * (1 - fee / 1_000_000);
 
-  return { token0, token1, sqrtPriceX96, tick, fee, price };
+  const quote = { token0, token1, sqrtPriceX96, tick, fee, price };
+  engineEvents.emit('quote', { type: 'v3', pool, quote });
+  return quote;
 }
 
 export default { getV3Quote };
