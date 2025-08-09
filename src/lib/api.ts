@@ -11,11 +11,21 @@ export async function fetchCandidates(input: TCandidatesInput) {
     headers: { 'Content-Type': 'application/json' },
     body: json(input),
   });
-  const data = await res.json();
+
   if (!res.ok) {
-    throw new Error(data.error);
+    try {
+      const err = await res.json();
+      throw new Error(err.error || res.statusText);
+    } catch {
+      throw new Error(res.statusText);
+    }
   }
-  return data;
+
+  try {
+    return await res.json();
+  } catch {
+    throw new Error('Malformed JSON response');
+  }
 }
 
 export async function simulate(input: TSimulateInput) {
@@ -24,9 +34,19 @@ export async function simulate(input: TSimulateInput) {
     headers: { 'Content-Type': 'application/json' },
     body: json(input),
   });
-  const data = await res.json();
+
   if (!res.ok) {
-    throw new Error(data.error);
+    try {
+      const err = await res.json();
+      throw new Error(err.error || res.statusText);
+    } catch {
+      throw new Error(res.statusText);
+    }
   }
-  return data;
+
+  try {
+    return await res.json();
+  } catch {
+    throw new Error('Malformed JSON response');
+  }
 }
