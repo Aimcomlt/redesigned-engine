@@ -1,26 +1,19 @@
 import express from "express";
 import { JsonRpcProvider } from "ethers";
-import { timingSafeEqual } from "crypto";
 import { validateBody } from "./middleware/validate";
 import { fetchCandidates } from "../src/core/candidates";
 import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
-import { executeTrade } from "../src/core/execute";
 import { saveSettings } from "../src/core/settings";
-import type { CandidateParamsInput, CandidatesRequest, SimulateRequest, ExecuteRequest } from "./schemas";
-import { candidatesRequestSchema, simulateRequestSchema, executeRequestSchema } from "./schemas";
+import type { CandidateParamsInput, CandidatesRequest, SimulateRequest } from "./schemas";
+import { candidatesRequestSchema, simulateRequestSchema } from "./schemas";
 import type { Candidate } from "../src/core/candidates";
 import { stream } from "./stream";
+import { execute } from "./routes/execute";
 
 const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
   const r = schema.safeParse(v);
   return r.success ? { success: true, data: r.data as T } : { success: false, error: r.error?.message };
 };
-
-const token = process.env.AUTH_TOKEN;
-if (!token) {
-  throw new Error("AUTH_TOKEN env var is required");
-}
-const AUTH_HEADER = Buffer.from(`Bearer ${token}`);
 
 const app = express();
 app.use(express.json());
@@ -52,14 +45,7 @@ app.post("/api/simulate", validateBody(wrap<SimulateRequest>(simulateRequestSche
   res.json(await simulateCandidate(req.parsed));
 });
 
-app.post("/api/execute", validateBody(wrap<ExecuteRequest>(executeRequestSchema)), async (req, res) => {
-  const header = Buffer.from(typeof req.headers["authorization"] === "string" ? req.headers["authorization"] : "");
-  if (header.length !== AUTH_HEADER.length || !timingSafeEqual(header, AUTH_HEADER)) {
-    return res.status(401).json({ error: "unauthorized" });
-  }
-  // @ts-expect-error injected
-  res.json(await executeTrade(req.parsed));
-});
+app.post("/api/execute", execute);
 
 app.post("/api/settings", async (req, res) => {
   res.json(await saveSettings(req.body));

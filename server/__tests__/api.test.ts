@@ -38,11 +38,20 @@ const baseParams = {
   minProfitUsd: 0,
 };
 
+const execParams = {
+  routeCalldata: '0x',
+  maxFeePerGas: '1',
+  maxPriorityFeePerGas: '1',
+  deadline: Math.floor(Date.now() / 1000) + 60,
+  dryRun: true,
+};
+
 describe('API endpoints', () => {
   let app: any;
 
   beforeEach(async () => {
     vi.resetModules();
+    delete process.env.EXEC_ENABLED;
     vi.doMock('../../src/core/candidates', () => {
       const fetchCandidates = vi.fn(async () => [
         { buy: 'A', sell: 'B', profitUsd: 1 },
@@ -61,7 +70,6 @@ describe('API endpoints', () => {
       __esModule: true,
       default: vi.fn(async () => {}),
     }));
-    process.env.AUTH_TOKEN = 'secret';
     ({ default: app } = await import('../index'));
   });
 
@@ -82,32 +90,12 @@ describe('API endpoints', () => {
     expect(parsed).toMatchObject(candidate);
   });
 
-  test('POST /api/execute rejects requests without token', async () => {
-    const res = await request(app).post('/api/execute').send(baseParams);
-    expect(res.status).toBe(401);
+  test('POST /api/execute returns 403 when disabled', async () => {
+    const res = await request(app).post('/api/execute').send(execParams);
+    expect(res.status).toBe(403);
   });
 
-  test('POST /api/execute rejects requests with invalid token', async () => {
-    const res = await request(app)
-      .post('/api/execute')
-      .set('Authorization', 'Bearer wrong')
-      .send(baseParams);
-    expect(res.status).toBe(401);
-  });
-
-  test('POST /api/execute succeeds with valid token', async () => {
-    const res = await request(app)
-      .post('/api/execute')
-      .set('Authorization', 'Bearer secret')
-      .send(baseParams);
-    expect(res.status).toBe(200);
-    const parsed = executeResponseSchema.parse(res.body);
-    expect(parsed.ok).toBe(true);
-  });
-});
-
-describe('AUTH_TOKEN requirement', () => {
-  test('throws if AUTH_TOKEN env var is missing', async () => {
+  test('POST /api/execute processes request when enabled', async () => {
     vi.resetModules();
     vi.doMock('../../src/core/candidates', () => {
       const fetchCandidates = vi.fn(async () => []);
@@ -117,12 +105,13 @@ describe('AUTH_TOKEN requirement', () => {
       const simulateCandidate = vi.fn(async () => ({}));
       return { __esModule: true, simulateCandidate, default: { simulateCandidate } };
     });
-    vi.doMock('../../index', () => ({
-      __esModule: true,
-      default: vi.fn(async () => {}),
-    }));
-    delete process.env.AUTH_TOKEN;
-    await expect(import('../index')).rejects.toThrow(/AUTH_TOKEN/);
+    vi.doMock('../../index', () => ({ __esModule: true, default: vi.fn(async () => {}) }));
+    process.env.EXEC_ENABLED = '1';
+    ({ default: app } = await import('../index'));
+    const res = await request(app).post('/api/execute').send(execParams);
+    expect(res.status).toBe(500);
+    const parsed = executeResponseSchema.parse(res.body);
+    expect(parsed.ok).toBe(false);
   });
 });
 
