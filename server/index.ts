@@ -1,5 +1,4 @@
 import express from "express";
-import { json } from "body-parser";
 import { JsonRpcProvider } from "ethers";
 import { timingSafeEqual } from "crypto";
 import { validateBody } from "./middleware/validate";
@@ -23,7 +22,7 @@ if (!token) {
 const AUTH_HEADER = Buffer.from(`Bearer ${token}`);
 
 const app = express();
-app.use(json());
+app.use(express.json());
 
 app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
