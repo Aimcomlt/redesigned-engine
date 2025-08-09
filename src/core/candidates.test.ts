@@ -3,6 +3,7 @@ import { fetchCandidates } from './candidates';
 import * as v2 from './v2';
 import * as v3 from './v3';
 import { toQ96 } from '../utils/fixed';
+import { engineEvents } from '../utils/hooks';
 
 const provider = {
   getFeeData: async () => ({ gasPrice: 1n * 10n ** 9n })
@@ -85,6 +86,51 @@ test('returns empty array when profit below threshold', async () => {
   });
 
   expect(candidates).toHaveLength(0);
+});
+
+test('skips venues that fail to fetch quotes', async () => {
+  vi.spyOn(v2, 'getV2Quote').mockRejectedValue(new Error('fail'));
+  vi
+    .spyOn(v3, 'getV3Quote')
+    .mockResolvedValueOnce({
+      token0: '',
+      token1: '',
+      sqrtPriceX96: 0n,
+      tick: 0,
+      fee: 0,
+      price: 100
+    })
+    .mockResolvedValueOnce({
+      token0: '',
+      token1: '',
+      sqrtPriceX96: 0n,
+      tick: 0,
+      fee: 0,
+      price: 105
+    });
+
+  const emitSpy = vi.spyOn(engineEvents, 'emit');
+
+  const candidates = await fetchCandidates({
+    provider,
+    venues: [
+      { name: 'A', type: 'v2', address: '0x1' },
+      { name: 'B', type: 'v3', address: '0x2' },
+      { name: 'C', type: 'v3', address: '0x3' }
+    ],
+    amountIn: 1n * 10n ** 18n,
+    token0: { address: '0x0000000000000000000000000000000000000001', decimals: 18, priceUsd: toQ96(2000) },
+    token1: { address: '0x0000000000000000000000000000000000000002', decimals: 6, priceUsd: toQ96(1) },
+    slippageBps: 0,
+    gasUnits: 100000n,
+    ethUsd: 2000,
+    minProfitUsd: 1
+  });
+
+  expect(emitSpy).toHaveBeenCalledWith('quote:error', expect.objectContaining({ venue: 'A' }));
+  expect(candidates).toHaveLength(1);
+  expect(candidates[0].buy).toBe('B');
+  expect(candidates[0].sell).toBe('C');
 });
 
 test('handles amountIn larger than Number.MAX_SAFE_INTEGER', async () => {

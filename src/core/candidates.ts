@@ -67,13 +67,18 @@ export async function fetchCandidates({
   const baseBps = 10_000n;
 
   const quotes = await Promise.all(
-    venues.map(async (v) => {
-      if (v.type === 'v2') {
-        const q = await getV2Quote(provider, v.address);
-        return { venue: v.name, price: parseUnits(q.price0.toString(), token1.decimals) };
+    venues.map(async (v): Promise<{ venue: string; price: bigint } | null> => {
+      try {
+        if (v.type === 'v2') {
+          const q = await getV2Quote(provider, v.address);
+          return { venue: v.name, price: parseUnits(q.price0.toString(), token1.decimals) };
+        }
+        const q = await getV3Quote(provider, v.address);
+        return { venue: v.name, price: parseUnits(q.price.toString(), token1.decimals) };
+      } catch (error) {
+        engineEvents.emit('quote:error', { venue: v.name, error: String(error) });
+        return null;
       }
-      const q = await getV3Quote(provider, v.address);
-      return { venue: v.name, price: parseUnits(q.price.toString(), token1.decimals) };
     })
   );
 
@@ -81,17 +86,20 @@ export async function fetchCandidates({
 
   const candidates: Candidate[] = [];
   for (let i = 0; i < quotes.length; i++) {
+    const buyQuote = quotes[i];
+    if (!buyQuote) continue;
     for (let j = 0; j < quotes.length; j++) {
-      if (i === j) continue;
-      const buyPrice = (quotes[i].price * (baseBps + slipBps)) / baseBps;
-      const sellPrice = (quotes[j].price * (baseBps - slipBps)) / baseBps;
+      const sellQuote = quotes[j];
+      if (!sellQuote || i === j) continue;
+      const buyPrice = (buyQuote.price * (baseBps + slipBps)) / baseBps;
+      const sellPrice = (sellQuote.price * (baseBps - slipBps)) / baseBps;
       const profitToken1 = ((sellPrice - buyPrice) * amountIn) / amountScale;
       const profitUsdQ96 = (profitToken1 * token1.priceUsd) / priceScale;
       const profitUsd = fromQ96(profitUsdQ96 - toQ96(gasUsd));
       if (profitUsd >= minProfitUsd) {
         candidates.push({
-          buy: quotes[i].venue,
-          sell: quotes[j].venue,
+          buy: buyQuote.venue,
+          sell: sellQuote.venue,
           profitUsd
         });
       }
