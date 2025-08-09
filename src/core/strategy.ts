@@ -39,3 +39,27 @@ export function buildStrategy({
     expectedProfit: profit
   };
 }
+
+import type { StrategyCtx } from './context';
+
+interface Candidate { expectedProfitUsd: number }
+
+function computeCandidates(_ctx: StrategyCtx, _v2?: unknown, _v3?: unknown): Candidate[] {
+  return [];
+}
+
+function simulate(_ctx: StrategyCtx, c: Candidate): { expectedProfitUsd: number } {
+  return { expectedProfitUsd: c.expectedProfitUsd };
+}
+
+export async function runLoop(ctx: StrategyCtx): Promise<void> {
+  for (;;) {
+    const candidates = computeCandidates(ctx);
+    const profitable: Candidate[] = [];
+    for (const c of candidates) {
+      const s = simulate(ctx, c);
+      if (s.expectedProfitUsd > ctx.minProfitUsd) profitable.push({ ...c });
+    }
+    await new Promise(r => setTimeout(r, 200));
+  }
+}
