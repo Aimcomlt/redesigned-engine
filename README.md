@@ -206,3 +206,20 @@ Submit a pull request with a clear description.
 
 License
 Distributed under the MIT License. See LICENSE (if present) for details.
+
+Validation & Types
+Shared request and response schemas live in `src/shared/validation` and are
+consumed by both the client and the server. Types are derived from these Zod
+schemas using `z.infer`, so updating a schema automatically updates the
+corresponding TypeScript types used in API calls and Express handlers.
+
+To add a field:
+1. Edit the relevant schema in `src/shared/validation/schemas.ts`.
+2. Types such as `TCandidatesInput` and `TSimulateInput` will update
+   automatically.
+3. To try another validation library, implement a new adapter in
+   `src/shared/validation/adapters.ts` and set `VALIDATOR` to `valibot` or
+   `yup`.
+
+Validation executes on the server via middleware, preventing secrets from being
+validated in the browser or leaked to logs.
