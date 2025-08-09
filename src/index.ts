@@ -7,7 +7,11 @@ import { eventBus } from './core/bus';
 
 async function start() {
   wireEventBuffering();
-  const stopWS = startChainWS({ wsUrl: process.env.WS_RPC!, shards: 2 });
+  const wsUrl = process.env.WS_RPC;
+  if (!wsUrl) {
+    throw new Error('WS_RPC environment variable is not defined');
+  }
+  const stopWS = startChainWS({ wsUrl, shards: 2 });
 
   eventBus.on("block", async () => {
     try { await onBlockTick(); } catch (e) { eventBus.emit("log", { level: "error", msg: String(e) }); }
