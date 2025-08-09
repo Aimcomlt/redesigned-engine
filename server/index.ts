@@ -11,6 +11,22 @@ import { stream } from "./stream";
 import { execute } from "./routes/execute";
 import { register } from "../src/utils/metrics";
 
+const requireEnv = (name: string) => {
+  const v = process.env[name];
+  if (!v) {
+    // eslint-disable-next-line no-console
+    console.error(`Missing required environment variable ${name}`);
+    process.exit(1);
+  }
+  return v;
+};
+
+requireEnv("AUTH_TOKEN");
+if (process.env.EXEC_ENABLED === "1") {
+  requireEnv("WS_RPC");
+  requireEnv("BUNDLE_SIGNER_KEY");
+}
+
 const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
   const r = schema.safeParse(v);
   return r.success ? { success: true, data: r.data as T } : { success: false, error: r.error?.message };
