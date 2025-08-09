@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter, Routes, Route, Link, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './api/queryClient';
 import { AppStoreProvider } from './store/useAppStore';
@@ -10,41 +10,18 @@ import Simulator from './pages/Simulator';
 import Strategies from './pages/Strategies';
 import Settings from './pages/Settings';
 import Logs from './pages/Logs';
+import Header from './components/Header';
+import SidebarNav from './components/SidebarNav';
 
 function Layout() {
   return (
-    <div className="layout">
-      <Sidebar />
-      <div className="main">
+    <div className="flex">
+      <SidebarNav />
+      <div className="flex-1">
         <Header />
         <Outlet />
       </div>
     </div>
-  );
-}
-
-function Sidebar() {
-  return (
-    <aside className="sidebar">
-      <nav>
-        <ul>
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/pools">Pools</Link></li>
-          <li><Link to="/simulator">Simulator</Link></li>
-          <li><Link to="/strategies">Strategies</Link></li>
-          <li><Link to="/settings">Settings</Link></li>
-          <li><Link to="/logs">Logs</Link></li>
-        </ul>
-      </nav>
-    </aside>
-  );
-}
-
-function Header() {
-  return (
-    <header className="header">
-      <h1>Arbitrage Engine</h1>
-    </header>
   );
 }
 
