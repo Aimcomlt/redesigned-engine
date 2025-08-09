@@ -175,6 +175,9 @@ REACT_APP_MIN_PROFIT_USD=10
 - **Production** – `npm run build` outputs static assets served by Docker Nginx image.
 - **Tests** – `npm test` runs the Vitest suite.
 
+### State Management
+The client uses [Redux Toolkit](https://redux-toolkit.js.org/) for global state. Slices live in `src/store` and are combined in `src/store/index.ts`. The store is provided to the component tree via React Redux's `<Provider>`, so components interact with state through `useDispatch` and `useSelector`. When running `npm start`, you can inspect and modify state using the Redux DevTools browser extension.
+
 Docker Deployment
 Build and run the stack with Docker Compose:
 
