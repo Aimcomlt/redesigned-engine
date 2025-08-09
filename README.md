@@ -66,14 +66,74 @@ await main({
   ethUsd: 3200,
   minProfitUsd: 5
 });
-Streaming API
-The server exposes a Server-Sent Events endpoint at `/api/stream`.
-It broadcasts:
+HTTP API
+The server exposes HTTP endpoints for candidate discovery, simulation, execution, and streaming updates.
 
-* `block` – new block numbers from the connected chain
-* `quote` – latest price quotes used by the engine
-* `candidates` – recomputed arbitrage candidates
-* `heartbeat` – keep-alive message every 15s
+### `POST /api/candidates`
+Returns a list of potential arbitrage trades.
+
+**Payload**
+
+```json
+{
+  "providerUrl": "https://rpc.example",
+  "venues": [{ "name": "uniV2", "type": "v2", "address": "0x..." }],
+  "amountIn": "1000000000000000000",
+  "token0": { "decimals": 18, "priceUsd": "1000000000000000000" },
+  "token1": { "decimals": 18, "priceUsd": "1000000000000000000" },
+  "slippageBps": 50,
+  "gasUnits": "200000",
+  "ethUsd": 3200,
+  "minProfitUsd": 5
+}
+```
+
+**Example**
+
+```bash
+curl -X POST http://localhost:3001/api/candidates \
+  -H "Content-Type: application/json" \
+  -d '{"providerUrl":"https://rpc.example","venues":[{"name":"uniV2","type":"v2","address":"0x..."}],"amountIn":"1000000000000000000","token0":{"decimals":18,"priceUsd":"1000000000000000000"},"token1":{"decimals":18,"priceUsd":"1000000000000000000"},"slippageBps":50,"gasUnits":"200000","ethUsd":3200,"minProfitUsd":5}'
+```
+
+### `POST /api/simulate`
+Simulates profit for a specific candidate.
+
+**Payload**
+
+```json
+{
+  "candidate": { "buy": "0x...", "sell": "0x...", "profitUsd": 0 },
+  "params": { /* same fields as /api/candidates */ }
+}
+```
+
+**Example**
+
+```bash
+curl -X POST http://localhost:3001/api/simulate \
+  -H "Content-Type: application/json" \
+  -d '{"candidate":{"buy":"0x...","sell":"0x...","profitUsd":0},"params":{"providerUrl":"https://rpc.example","venues":[{"name":"uniV2","type":"v2","address":"0x..."}],"amountIn":"1000000000000000000","token0":{"decimals":18,"priceUsd":"1000000000000000000"},"token1":{"decimals":18,"priceUsd":"1000000000000000000"},"slippageBps":50,"gasUnits":"200000","ethUsd":3200,"minProfitUsd":5}}'
+```
+
+### `POST /api/execute`
+Runs the engine with the provided parameters. Requires an `Authorization: Bearer` token.
+
+**Example**
+
+```bash
+curl -X POST http://localhost:3001/api/execute \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"providerUrl":"https://rpc.example","venues":[{"name":"uniV2","type":"v2","address":"0x..."}],"amountIn":"1000000000000000000","token0":{"decimals":18,"priceUsd":"1000000000000000000"},"token1":{"decimals":18,"priceUsd":"1000000000000000000"},"slippageBps":50,"gasUnits":"200000","ethUsd":3200,"minProfitUsd":5}'
+```
+
+### `GET /api/stream`
+Server-Sent Events stream providing live `block`, `quote`, `candidates`, and periodic `heartbeat` messages.
+
+```bash
+curl -N http://localhost:3001/api/stream
+```
 
 Clients should reconnect when the connection closes. Browsers using
 `EventSource` do this automatically and will resume listening after a
@@ -88,6 +148,41 @@ stream.addEventListener('block', (e) => {
   console.log('new block', JSON.parse(e.data));
 });
 ```
+
+React App
+Commands and configuration for the front-end.
+
+### Scripts
+
+```bash
+npm start    # start dev server at http://localhost:3000
+npm run build# create production bundle
+npm test     # run unit tests
+```
+
+### Environment Variables
+Non‑secret variables prefixed with `REACT_APP_` are exposed to the browser. Example `.env.client`:
+
+```
+REACT_APP_API_URL=http://localhost:3001
+REACT_APP_SLIPPAGE_BPS=50
+REACT_APP_GAS_CEILING=300000
+REACT_APP_MIN_PROFIT_USD=10
+```
+
+### Execution Modes
+- **Development** – `npm start` launches a hot‑reloading dev server.
+- **Production** – `npm run build` outputs static assets served by Docker Nginx image.
+- **Tests** – `npm test` runs the Vitest suite.
+
+Docker Deployment
+Build and run the stack with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+This starts the API, React frontend, and optional Prometheus/Grafana services. Secrets such as RPC keys or private keys belong in `.env.server` and remain only on the server container. Client `.env.client` should never contain sensitive values.
 
 Testing
 npm test          # runs Vitest suite
