@@ -25,21 +25,14 @@ export function zodAdapter<T>(schema: ZodType<T>): Validator<T> {
     },
   };
 }
-
-export function valibotAdapter<T>(_schema: unknown): Validator<T> {
-  throw new Error('valibot adapter not implemented');
-}
-
-export function yupAdapter<T>(_schema: unknown): Validator<T> {
-  throw new Error('yup adapter not implemented');
-}
-
+/**
+ * Currently only Zod is supported. If other validators are requested
+ * through the `VALIDATOR` env variable, fall back to the Zod adapter.
+ */
 export function createValidator<T>(schema: unknown): Validator<T> {
   switch (process.env.VALIDATOR) {
     case 'valibot':
-      return valibotAdapter<T>(schema);
     case 'yup':
-      return yupAdapter<T>(schema);
     default:
       return zodAdapter<T>(schema as ZodType<T>);
   }
