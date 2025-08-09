@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { JsonRpcProvider } from 'ethers';
 import process from 'node:process';
+import { engineEvents } from '../src/utils/hooks';
 import {
   candidatesRequestSchema,
   candidatesResponseSchema,
@@ -18,6 +19,26 @@ import main from '../index';
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Stream of connected SSE clients
+const clients = new Set<Response>();
+
+function broadcast(event: string, data: unknown) {
+  const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const res of clients) {
+    res.write(message);
+  }
+}
+
+// Wire engine hooks to SSE broadcast
+engineEvents.on('block', (block) => broadcast('block', { number: block }));
+engineEvents.on('quote', (quote) => broadcast('quote', quote));
+engineEvents.on('candidates', (candidates) =>
+  broadcast('candidates', candidates)
+);
+
+// Heartbeat interval in ms
+const HEARTBEAT_MS = 15000;
 
 function validate(schema: any) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -71,6 +92,33 @@ app.post('/api/execute', validate(executeRequestSchema), async (req: Request, re
   const out = executeResponseSchema.parse({ ok: true });
   res.json(out);
 });
+
+app.get('/api/stream', (req: Request, res: Response) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive'
+  });
+
+  res.flushHeaders();
+  clients.add(res);
+
+  // send heartbeat to keep connection alive
+  const hb = setInterval(() => {
+    res.write('event: heartbeat\ndata: {}\n\n');
+  }, HEARTBEAT_MS);
+
+  req.on('close', () => {
+    clearInterval(hb);
+    clients.delete(res);
+  });
+});
+
+// Listen to new blocks and emit via engine hooks
+if (process.env.RPC_URL) {
+  const streamProvider = new JsonRpcProvider(process.env.RPC_URL);
+  streamProvider.on('block', (b: number) => engineEvents.emit('block', b));
+}
 
 export function start() {
   const port = Number(process.env.PORT) || 3001;

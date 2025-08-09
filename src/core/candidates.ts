@@ -4,6 +4,7 @@ import { getV3Quote } from './v3';
 import { estimateGasUsd } from '../utils/gas';
 import { fromQ96 } from '../utils/fixed';
 import type { TokenInfo } from '../utils/prices';
+import { engineEvents } from '../utils/hooks';
 
 export interface VenueConfig {
   /** Human readable venue identifier */
@@ -94,6 +95,7 @@ export async function fetchCandidates({
     }
   }
 
+  engineEvents.emit('candidates', candidates);
   return candidates;
 }
 

@@ -2,6 +2,7 @@ import { Contract, type Provider, Wallet } from 'ethers';
 import invariant from 'tiny-invariant';
 import { checkSlippage } from '../risk/slippage';
 import { getV2Router } from '../utils/router';
+import { engineEvents } from '../utils/hooks';
 import type { SimResult } from './sim';
 
 const PAIR_ABI = [
@@ -44,7 +45,9 @@ export async function getV2Quote(
   const price0 = (Number(reserve1) / Number(reserve0)) * fee;
   const price1 = (Number(reserve0) / Number(reserve1)) * fee;
 
-  return { token0, token1, reserve0, reserve1, price0, price1 };
+  const quote = { token0, token1, reserve0, reserve1, price0, price1 };
+  engineEvents.emit('quote', { type: 'v2', pair, quote });
+  return quote;
 }
 
 export default { getV2Quote };
