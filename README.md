@@ -161,13 +161,13 @@ npm test     # run unit tests
 ```
 
 ### Environment Variables
-Non‑secret variables prefixed with `REACT_APP_` are exposed to the browser. Example `.env.client`:
+Non‑secret variables prefixed with `VITE_` are exposed to the browser. Example `.env.client`:
 
 ```
-REACT_APP_API_URL=http://localhost:3001
-REACT_APP_SLIPPAGE_BPS=50
-REACT_APP_GAS_CEILING=300000
-REACT_APP_MIN_PROFIT_USD=10
+VITE_API_URL=http://localhost:3001
+VITE_SLIPPAGE_BPS=50
+VITE_GAS_CEILING=300000
+VITE_MIN_PROFIT_USD=10
 ```
 
 ### Execution Modes
