@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { useAppStore } from '../store/useAppStore';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 const links = [
   { to: '/', label: 'Dashboard', end: true },
@@ -11,7 +12,7 @@ const links = [
 ];
 
 export default function SidebarNav() {
-  const open = useAppStore((s) => s.sidebarOpen);
+  const open = useSelector((s: RootState) => s.app.sidebarOpen);
   return (
     <aside
       className={`${open ? 'block' : 'hidden'} bg-gray-900 text-white w-64 min-h-screen`}
