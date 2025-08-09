@@ -2,20 +2,14 @@ import { useMutation } from '@tanstack/react-query';
 import type { Candidate } from './CandidateTable';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
+import { simulate as simulateApi } from '../lib/api';
 
 export default function SimulatorPanel({ candidate }: { candidate: Candidate }) {
   const { slippageBps, gasCeiling, minProfitUsd, enabled } = useSelector(
     (state: RootState) => state.execution
   );
   const simulate = useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate, params: {} }),
-      });
-      return res.json();
-    },
+    mutationFn: () => simulateApi({ candidate, params: {} } as any),
   });
 
   const execute = useMutation({

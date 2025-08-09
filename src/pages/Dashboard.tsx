@@ -1,17 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import StatCard from '../components/StatCard';
+import { fetchCandidates } from '../lib/api';
 
 export default function Dashboard() {
   const { data } = useQuery({
     queryKey: ['candidates'],
-    queryFn: async () => {
-      const res = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      return res.json();
-    },
+    queryFn: () => fetchCandidates({} as any),
   });
 
   const count = data?.candidates?.length ?? 0;
