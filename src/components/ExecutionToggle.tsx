@@ -17,11 +17,19 @@ export default function ExecutionToggle() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ enabled: next }),
         });
-        const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.error);
+          try {
+            const err = await res.json();
+            throw new Error(err.error || res.statusText);
+          } catch {
+            throw new Error(res.statusText);
+          }
         }
-        return data;
+        try {
+          return await res.json();
+        } catch {
+          throw new Error('Malformed JSON response');
+        }
       } catch (err) {
         throw err;
       }

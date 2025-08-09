@@ -48,10 +48,24 @@ export class FlashbotsRelay implements Relay {
         },
         body: JSON.stringify(body),
       });
+      if (!res.ok) {
+        try {
+          const err = await res.json();
+          const msg = err?.error?.message || res.statusText;
+          return { ok: false, error: msg };
+        } catch {
+          return { ok: false, error: res.statusText };
+        }
+      }
 
-      const json: any = await res.json();
-      if (json.error) return { ok: false, error: json.error.message };
-      return { ok: true, txHash: json.result };
+      try {
+        const json: any = await res.json();
+        if (json.error) return { ok: false, error: json.error.message };
+        return { ok: true, txHash: json.result };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { ok: false, error: msg };
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { ok: false, error: msg };
