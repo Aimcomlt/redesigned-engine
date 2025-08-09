@@ -4,9 +4,14 @@ import { executeWithRelay } from "../../src/exec/submit";
 import { FlashbotsRelay } from "../../src/exec/relays/flashbots";
 
 const EXEC_ENABLED = process.env.EXEC_ENABLED === "1";
+const AUTH_TOKEN = process.env.AUTH_TOKEN || "";
 
 export async function execute(req: Request, res: Response) {
   if (!EXEC_ENABLED) return res.status(403).json({ error: "execution disabled" });
+
+  if (!AUTH_TOKEN || req.headers.authorization !== `Bearer ${AUTH_TOKEN}`) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
 
   const r = vSafe(ExecuteInput, req.body);
   if (!r.success) return res.status(400).json({ error: r.error });
