@@ -134,7 +134,7 @@ curl -X POST http://localhost:3001/api/execute \
 ```
 
 ### `GET /api/stream`
-Server-Sent Events stream providing live `block`, `quote`, `candidates`, and periodic `heartbeat` messages.
+Server-Sent Events stream providing live `block`, `candidate`, and periodic `heartbeat` messages every 15 seconds.
 
 ```bash
 curl -N http://localhost:3001/api/stream
