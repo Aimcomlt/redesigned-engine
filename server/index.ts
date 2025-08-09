@@ -20,7 +20,20 @@ app.use(json());
 
 app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
-  const list = await fetchCandidates(req.parsed);
+  const body = req.parsed;
+  const provider = new JsonRpcProvider(body.providerUrl);
+  const params = {
+    provider,
+    venues: body.venues,
+    amountIn: BigInt(body.amountIn),
+    token0: { address: body.token0.address, decimals: body.token0.decimals, priceUsd: BigInt(body.token0.priceUsd) },
+    token1: { address: body.token1.address, decimals: body.token1.decimals, priceUsd: BigInt(body.token1.priceUsd) },
+    slippageBps: body.slippageBps,
+    gasUnits: BigInt(body.gasUnits),
+    ethUsd: body.ethUsd,
+    minProfitUsd: body.minProfitUsd,
+  };
+  const list = await fetchCandidates(params as any);
   res.json({ candidates: list });
 });
 
@@ -49,8 +62,8 @@ export function buildSimulateParams(body: CandidateParamsInput, candidate: Candi
     provider,
     venues: body.venues,
     amountIn: BigInt(body.amountIn),
-    token0: { decimals: body.token0.decimals, priceUsd: BigInt(body.token0.priceUsd) },
-    token1: { decimals: body.token1.decimals, priceUsd: BigInt(body.token1.priceUsd) },
+    token0: { address: body.token0.address, decimals: body.token0.decimals, priceUsd: BigInt(body.token0.priceUsd) },
+    token1: { address: body.token1.address, decimals: body.token1.decimals, priceUsd: BigInt(body.token1.priceUsd) },
     slippageBps: body.slippageBps,
     gasUnits: BigInt(body.gasUnits),
     ethUsd: body.ethUsd,

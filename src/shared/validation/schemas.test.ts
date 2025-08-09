@@ -8,8 +8,8 @@ const validPayload = {
     { name: 'B', type: 'v3', address: '0x'.concat('2'.repeat(40)) }
   ],
   amountIn: '1000',
-  token0: { decimals: 18, priceUsd: '2000' },
-  token1: { decimals: 6, priceUsd: '1' },
+  token0: { address: '0x'.concat('3'.repeat(40)), decimals: 18, priceUsd: '2000' },
+  token1: { address: '0x'.concat('4'.repeat(40)), decimals: 6, priceUsd: '1' },
   slippageBps: 100,
   gasUnits: '21000',
   ethUsd: 2000,
@@ -25,8 +25,8 @@ test('CandidatesInput rejects invalid address and missing fields', () => {
   const invalidPayload: any = {
     venues: [{ name: 'A', type: 'v2', address: '0x123' }],
     amountIn: '1000',
-    token0: { decimals: 18, priceUsd: '2000' },
-    token1: { decimals: 6, priceUsd: '1' },
+    token0: { address: '0x'.concat('3'.repeat(40)), decimals: 18, priceUsd: '2000' },
+    token1: { address: '0x'.concat('4'.repeat(40)), decimals: 6, priceUsd: '1' },
     slippageBps: 100,
     gasUnits: '21000',
     ethUsd: 2000

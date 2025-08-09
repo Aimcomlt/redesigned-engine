@@ -4,6 +4,7 @@ import {
   CandidatesInput,
   SimulateInput,
   TCandidatesInput,
+  TokenSchema,
 } from '../src/shared/validation';
 
 export const candidateSchema = CandidateSchema;
@@ -27,3 +28,4 @@ export type SimulateRequest = z.infer<typeof simulateRequestSchema>;
 export type SimulateResponse = z.infer<typeof simulateResponseSchema>;
 export type ExecuteRequest = z.infer<typeof executeRequestSchema>;
 export type ExecuteResponse = z.infer<typeof executeResponseSchema>;
+export type TokenInput = z.infer<typeof TokenSchema>;

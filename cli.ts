@@ -28,16 +28,18 @@ async function main() {
 
   const token0Decimals = Number(getArg('token0-decimals') ?? getEnv('TOKEN0_DECIMALS') ?? '18');
   const token0Price = BigInt(getArg('token0-price-usd') ?? getEnv('TOKEN0_PRICE_USD') ?? '0');
+  const token0Address = getArg('token0-address') ?? getEnv('TOKEN0_ADDRESS') ?? '0x0000000000000000000000000000000000000000';
   const token1Decimals = Number(getArg('token1-decimals') ?? getEnv('TOKEN1_DECIMALS') ?? '18');
   const token1Price = BigInt(getArg('token1-price-usd') ?? getEnv('TOKEN1_PRICE_USD') ?? '0');
+  const token1Address = getArg('token1-address') ?? getEnv('TOKEN1_ADDRESS') ?? '0x0000000000000000000000000000000000000000';
 
   const slippageBps = Number(getArg('slippage-bps') ?? getEnv('SLIPPAGE_BPS') ?? '0');
   const gasUnits = BigInt(getArg('gas-units') ?? getEnv('GAS_UNITS') ?? '0');
   const ethUsd = Number(getArg('eth-usd') ?? getEnv('ETH_USD') ?? '0');
   const minProfitUsd = Number(getArg('min-profit-usd') ?? getEnv('MIN_PROFIT_USD') ?? '0');
 
-  const token0 = { decimals: token0Decimals, priceUsd: toQ96(token0Price) };
-  const token1 = { decimals: token1Decimals, priceUsd: toQ96(token1Price) };
+  const token0 = { address: token0Address, decimals: token0Decimals, priceUsd: toQ96(token0Price) };
+  const token1 = { address: token1Address, decimals: token1Decimals, priceUsd: toQ96(token1Price) };
 
   const candidates = await buildCandidates({
     provider,
