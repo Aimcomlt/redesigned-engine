@@ -17,8 +17,15 @@ import {
   ExecuteRequest,
 } from './schemas';
 import { validateBody, ParsedRequest } from './middleware/validate';
-import { fetchCandidates } from '../src/core/candidates';
-import { simulateCandidate } from '../src/core/arbitrage';
+import {
+  fetchCandidates,
+  type Candidate,
+  type CandidateParams
+} from '../src/core/candidates';
+import {
+  simulateCandidate,
+  type SimulateCandidateParams
+} from '../src/core/arbitrage';
 import main from '../index';
 
 const app = express();
@@ -45,7 +52,7 @@ engineEvents.on('candidates', (candidates) =>
 // Heartbeat interval in ms
 const HEARTBEAT_MS = 15000;
 
-function toParams(body: CandidateParamsInput) {
+function toParams(body: CandidateParamsInput): CandidateParams {
   return {
     provider: new JsonRpcProvider(body.providerUrl),
     venues: body.venues,
@@ -59,6 +66,14 @@ function toParams(body: CandidateParamsInput) {
   };
 }
 
+export function buildSimulateParams(
+  body: CandidateParamsInput,
+  candidate: Candidate
+): SimulateCandidateParams {
+  const { minProfitUsd: _ignored, ...rest } = toParams(body);
+  return { ...rest, candidate };
+}
+
 app.post('/api/candidates', validateBody<CandidatesRequest>(candidatesRequestSchema), async (req: ParsedRequest<CandidatesRequest>, res: Response) => {
   const params = toParams(req.parsed);
   const candidates = await fetchCandidates(params);
@@ -67,8 +82,9 @@ app.post('/api/candidates', validateBody<CandidatesRequest>(candidatesRequestSch
 });
 
 app.post('/api/simulate', validateBody<SimulateRequest>(simulateRequestSchema), async (req: ParsedRequest<SimulateRequest>, res: Response) => {
-  const { candidate, params: body } = req.parsed;
-  const params = { ...toParams(body), candidate } as any;
+  const { candidate: candidateInput, params: body } = req.parsed;
+  const candidate: Candidate = candidateInput;
+  const params = buildSimulateParams(body, candidate);
   const result = await simulateCandidate(params);
   const out = simulateResponseSchema.parse(result);
   res.json(out);
