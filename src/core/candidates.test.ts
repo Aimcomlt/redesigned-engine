@@ -86,3 +86,41 @@ test('returns empty array when profit below threshold', async () => {
 
   expect(candidates).toHaveLength(0);
 });
+
+test('handles amountIn larger than Number.MAX_SAFE_INTEGER', async () => {
+  vi.spyOn(v2, 'getV2Quote').mockResolvedValue({
+    token0: '',
+    token1: '',
+    reserve0: 0n,
+    reserve1: 0n,
+    price0: 100,
+    price1: 0
+  });
+  vi.spyOn(v3, 'getV3Quote').mockResolvedValue({
+    token0: '',
+    token1: '',
+    sqrtPriceX96: 0n,
+    tick: 0,
+    fee: 0,
+    price: 105
+  });
+
+  const hugeAmount = (BigInt(Number.MAX_SAFE_INTEGER) + 1n) * 10n ** 18n;
+  const candidates = await fetchCandidates({
+    provider,
+    venues: [
+      { name: 'A', type: 'v2', address: '0x1' },
+      { name: 'B', type: 'v3', address: '0x2' }
+    ],
+    amountIn: hugeAmount,
+    token0: { decimals: 18, priceUsd: q98(2000) },
+    token1: { decimals: 6, priceUsd: q98(1) },
+    slippageBps: 0,
+    gasUnits: 100000n,
+    ethUsd: 2000,
+    minProfitUsd: 1
+  });
+
+  expect(candidates).toHaveLength(1);
+  expect(Number.isFinite(candidates[0].profitUsd)).toBe(true);
+});
