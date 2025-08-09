@@ -1,4 +1,4 @@
-import { type Provider } from 'ethers';
+import { type Provider, parseUnits } from 'ethers';
 import { getV2Quote } from './v2';
 import { getV3Quote } from './v3';
 import { estimateGasUsd } from '../utils/gas';
@@ -61,30 +61,36 @@ export async function fetchCandidates({
   ethUsd,
   minProfitUsd
 }: CandidateParams): Promise<Candidate[]> {
+  const priceScale = 10n ** BigInt(token1.decimals);
+  const amountScale = 10n ** BigInt(token0.decimals);
+  const slipBps = BigInt(slippageBps);
+  const baseBps = 10_000n;
+
   const quotes = await Promise.all(
     venues.map(async (v) => {
       if (v.type === 'v2') {
         const q = await getV2Quote(provider, v.address);
-        return { venue: v.name, price: q.price0 };
+        return { venue: v.name, price: parseUnits(q.price0.toString(), token1.decimals) };
       }
       const q = await getV3Quote(provider, v.address);
-      return { venue: v.name, price: q.price };
+      return { venue: v.name, price: parseUnits(q.price.toString(), token1.decimals) };
     })
   );
 
   const gasUsd = await estimateGasUsd({ provider, gasUnits, ethUsd });
   const token1Usd = fromQ96(token1.priceUsd);
-  const amount0 = Number(amountIn) / 10 ** token0.decimals;
-  const slip = slippageBps / 10_000;
 
   const candidates: Candidate[] = [];
   for (let i = 0; i < quotes.length; i++) {
     for (let j = 0; j < quotes.length; j++) {
       if (i === j) continue;
-      const buyPrice = quotes[i].price * (1 + slip);
-      const sellPrice = quotes[j].price * (1 - slip);
-      const profitToken1 = (sellPrice - buyPrice) * amount0;
-      const profitUsd = profitToken1 * token1Usd - gasUsd;
+      const buyPrice = (quotes[i].price * (baseBps + slipBps)) / baseBps;
+      const sellPrice = (quotes[j].price * (baseBps - slipBps)) / baseBps;
+      const profitToken1 = ((sellPrice - buyPrice) * amountIn) / amountScale;
+      const whole = profitToken1 / priceScale;
+      const frac = profitToken1 % priceScale;
+      const profitToken1Num = Number(whole) + Number(frac) / Number(priceScale);
+      const profitUsd = profitToken1Num * token1Usd - gasUsd;
       if (profitUsd >= minProfitUsd) {
         candidates.push({
           buy: quotes[i].venue,

@@ -1,4 +1,4 @@
-import { type Provider } from 'ethers';
+import { type Provider, parseUnits } from 'ethers';
 import { fetchCandidates, type Candidate, type CandidateParams, type VenueConfig } from './candidates';
 import { getV2Quote } from './v2';
 import { getV3Quote } from './v3';
@@ -61,17 +61,28 @@ export async function simulateCandidate({
     sellConfig.type === 'v2' ? getV2Quote(provider, sellConfig.address) : getV3Quote(provider, sellConfig.address)
   ]);
 
-  const buyPrice = 'price0' in buyQuote ? buyQuote.price0 : buyQuote.price;
-  const sellPrice = 'price0' in sellQuote ? sellQuote.price0 : sellQuote.price;
-  const slip = slippageBps / 10_000;
-  const amount0 = Number(amountIn) / 10 ** token0.decimals;
+  const buyPriceNum = 'price0' in buyQuote ? buyQuote.price0 : buyQuote.price;
+  const sellPriceNum = 'price0' in sellQuote ? sellQuote.price0 : sellQuote.price;
+
+  const priceScale = 10n ** BigInt(token1.decimals);
+  const amountScale = 10n ** BigInt(token0.decimals);
+  const slipBps = BigInt(slippageBps);
+  const baseBps = 10_000n;
+
+  const buyPrice = parseUnits(buyPriceNum.toString(), token1.decimals);
+  const sellPrice = parseUnits(sellPriceNum.toString(), token1.decimals);
+
+  const buyAdj = (buyPrice * (baseBps + slipBps)) / baseBps;
+  const sellAdj = (sellPrice * (baseBps - slipBps)) / baseBps;
+  const profitToken1 = ((sellAdj - buyAdj) * amountIn) / amountScale;
+
+  const whole = profitToken1 / priceScale;
+  const frac = profitToken1 % priceScale;
+  const profitToken1Num = Number(whole) + Number(frac) / Number(priceScale);
+
   const token1Usd = fromQ96(token1.priceUsd);
   const gasUsd = await estimateGasUsd({ provider, gasUnits, ethUsd });
-
-  const buyAdj = buyPrice * (1 + slip);
-  const sellAdj = sellPrice * (1 - slip);
-  const profitToken1 = (sellAdj - buyAdj) * amount0;
-  const profitUsd = profitToken1 * token1Usd - gasUsd;
+  const profitUsd = profitToken1Num * token1Usd - gasUsd;
 
   return { buy: candidate.buy, sell: candidate.sell, profitUsd };
 }
