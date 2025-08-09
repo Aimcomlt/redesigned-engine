@@ -1,8 +1,14 @@
-import { expect, expectTypeOf, test } from 'vitest';
-import { buildSimulateParams } from './index';
+import { expect, expectTypeOf, test, beforeAll } from 'vitest';
 import type { Candidate } from '../src/core/candidates';
 import type { CandidateParamsInput } from './schemas';
 import type { SimulateCandidateParams } from '../src/core/arbitrage';
+
+let buildSimulateParams: (body: CandidateParamsInput, candidate: Candidate) => SimulateCandidateParams;
+
+beforeAll(async () => {
+  process.env.AUTH_TOKEN = 'secret';
+  ({ buildSimulateParams } = await import('./index'));
+});
 
 test('buildSimulateParams returns SimulateCandidateParams', () => {
   const body: CandidateParamsInput = {
@@ -22,3 +28,4 @@ test('buildSimulateParams returns SimulateCandidateParams', () => {
   expect((params as any).minProfitUsd).toBeUndefined();
   expectTypeOf(params).toEqualTypeOf<SimulateCandidateParams>();
 });
+
