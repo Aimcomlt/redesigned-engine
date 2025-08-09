@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import TokenSelect from './TokenSelect';
 import VenueSelect from './VenueSelect';
 import AmountInput from './AmountInput';
+import { fetchCandidates } from '../lib/api';
 
 export default function SettingsForm() {
   const [token0, setToken0] = useState('ETH');
@@ -11,14 +12,8 @@ export default function SettingsForm() {
   const [amount, setAmount] = useState(0);
 
   const save = useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token0, token1, venue, amount }),
-      });
-      return res.json();
-    },
+    mutationFn: () =>
+      fetchCandidates({ token0, token1, venue, amount } as any),
   });
 
   return (

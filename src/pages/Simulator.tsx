@@ -2,18 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import CandidateTable, { Candidate } from '../components/CandidateTable';
 import SimulatorPanel from '../components/SimulatorPanel';
+import { fetchCandidates } from '../lib/api';
 
 export default function Simulator() {
   const { data } = useQuery({
     queryKey: ['candidates'],
-    queryFn: async () => {
-      const res = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      return res.json();
-    },
+    queryFn: () => fetchCandidates({} as any),
   });
 
   const [selected, setSelected] = useState<Candidate | null>(null);

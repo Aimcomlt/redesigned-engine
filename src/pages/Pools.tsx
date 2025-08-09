@@ -1,17 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import PoolQuoteCard from '../components/PoolQuoteCard';
+import { fetchCandidates } from '../lib/api';
 
 export default function Pools() {
   const { data } = useQuery({
     queryKey: ['pools'],
-    queryFn: async () => {
-      const res = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      return res.json();
-    },
+    queryFn: () => fetchCandidates({} as any),
   });
 
   const quotes = data?.candidates ?? [];
