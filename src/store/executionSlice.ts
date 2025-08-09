@@ -8,10 +8,10 @@ interface ExecutionState {
 }
 
 const initialState: ExecutionState = {
-  enabled: process.env.REACT_APP_EXECUTION_ENABLED === 'true',
-  slippageBps: Number(process.env.REACT_APP_SLIPPAGE_BPS ?? 0),
-  gasCeiling: Number(process.env.REACT_APP_GAS_CEILING ?? 0),
-  minProfitUsd: Number(process.env.REACT_APP_MIN_PROFIT_USD ?? 0),
+  enabled: import.meta.env.VITE_EXECUTION_ENABLED === 'true',
+  slippageBps: Number(import.meta.env.VITE_SLIPPAGE_BPS ?? 0),
+  gasCeiling: Number(import.meta.env.VITE_GAS_CEILING ?? 0),
+  minProfitUsd: Number(import.meta.env.VITE_MIN_PROFIT_USD ?? 0),
 };
 
 const executionSlice = createSlice({
