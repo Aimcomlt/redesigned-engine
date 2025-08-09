@@ -25,7 +25,7 @@ git clone <repo-url>
 cd redesigned-engine
 npm install           # or pnpm install / yarn install
 Environment Variables
-Copy .env and populate as needed:
+Copy `.env.example` to `.env` and populate as needed:
 
 Variable	Description
 RPC_URL	Ethereum JSON‑RPC endpoint
