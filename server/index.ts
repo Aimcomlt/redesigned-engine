@@ -9,6 +9,7 @@ import { candidatesRequestSchema, simulateRequestSchema } from "./schemas";
 import type { Candidate } from "../src/core/candidates";
 import { stream } from "./stream";
 import { execute } from "./routes/execute";
+import { register } from "../src/utils/metrics";
 
 const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
   const r = schema.safeParse(v);
@@ -20,6 +21,12 @@ app.use(express.json());
 
 // Server-Sent Events stream for candidates and logs
 app.get("/api/stream", stream);
+
+// Expose metrics for Prometheus scraping
+app.get("/metrics", async (_req, res) => {
+  res.set("Content-Type", register.contentType);
+  res.send(await register.metrics());
+});
 
 app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
