@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { fetchCandidates } from './candidates';
 import * as v2 from './v2';
 import * as v3 from './v3';
-import { q98 } from '../utils/fixed';
+import { toQ96 } from '../utils/fixed';
 
 const provider = {
   getFeeData: async () => ({ gasPrice: 1n * 10n ** 9n })
@@ -37,8 +37,8 @@ test('fetchCandidates computes profit and filters by minProfitUsd', async () => 
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: 1n * 10n ** 18n,
-    token0: { decimals: 18, priceUsd: q98(2000) },
-    token1: { decimals: 6, priceUsd: q98(1) },
+    token0: { decimals: 18, priceUsd: toQ96(2000) },
+    token1: { decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,
@@ -76,8 +76,8 @@ test('returns empty array when profit below threshold', async () => {
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: 1n * 10n ** 18n,
-    token0: { decimals: 18, priceUsd: q98(2000) },
-    token1: { decimals: 6, priceUsd: q98(1) },
+    token0: { decimals: 18, priceUsd: toQ96(2000) },
+    token1: { decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,
@@ -113,8 +113,8 @@ test('handles amountIn larger than Number.MAX_SAFE_INTEGER', async () => {
       { name: 'B', type: 'v3', address: '0x2' }
     ],
     amountIn: hugeAmount,
-    token0: { decimals: 18, priceUsd: q98(2000) },
-    token1: { decimals: 6, priceUsd: q98(1) },
+    token0: { decimals: 18, priceUsd: toQ96(2000) },
+    token1: { decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,

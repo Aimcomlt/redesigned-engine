@@ -1,16 +1,18 @@
+/**
+ * 2^96 scaling factor used for Q64.96 fixed-point numbers.
+ */
 export const Q96 = 1n << 96n;
 
 /**
- * Converts an integer value to Q64.96 fixed-point format.
- * This is referenced as `q98` to provide a short helper
- * for working with Q64.96 numbers.
+ * Converts an integer to Q64.96 fixed-point format by multiplying by 2^96.
  */
-export function q98(value: bigint | number): bigint {
+export function toQ96(value: bigint | number): bigint {
   return BigInt(value) * Q96;
 }
 
 /**
- * Converts a Q64.96 value back to a JavaScript number.
+ * Converts a Q64.96 fixed-point value back to a JavaScript number by dividing
+ * by 2^96.
  */
 export function fromQ96(value: bigint): number {
   return Number(value) / Number(Q96);
