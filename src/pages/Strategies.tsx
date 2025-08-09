@@ -1,3 +1,9 @@
+import StrategyEditor from '../components/StrategyEditor';
+
 export default function Strategies() {
-  return <div>Strategies</div>;
+  return (
+    <div className="p-4">
+      <StrategyEditor />
+    </div>
+  );
 }
