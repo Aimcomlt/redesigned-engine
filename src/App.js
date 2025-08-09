@@ -3,7 +3,8 @@ import './App.css';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './api/queryClient';
-import { AppStoreProvider } from './store/useAppStore';
+import { Provider } from 'react-redux';
+import { store } from './store';
 import Dashboard from './pages/Dashboard';
 import Pools from './pages/Pools';
 import Simulator from './pages/Simulator';
@@ -28,7 +29,7 @@ function Layout() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppStoreProvider>
+      <Provider store={store}>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
@@ -41,7 +42,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </AppStoreProvider>
+      </Provider>
     </QueryClientProvider>
   );
 }
