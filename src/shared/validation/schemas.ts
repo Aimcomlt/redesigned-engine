@@ -27,15 +27,18 @@ export const CandidatesInput = z.object({
   minProfitUsd: z.number().optional().default(0),
 });
 
+export const CandidateSchema = z.object({
+  buy: z.string(),
+  sell: z.string(),
+  profitUsd: z.number(),
+});
+
 export const SimulateInput = z.object({
-  candidate: z.object({
-    buy: BigintString,
-    sell: BigintString,
-    profitUsd: z.number(),
-  }),
+  candidate: CandidateSchema,
   params: CandidatesInput,
 });
 
 export type TCandidatesInput = z.infer<typeof CandidatesInput>;
 export type TSimulateInput = z.infer<typeof SimulateInput>;
+export type TCandidate = z.infer<typeof CandidateSchema>;
 

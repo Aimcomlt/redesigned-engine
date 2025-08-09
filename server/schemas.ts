@@ -1,15 +1,12 @@
 import { z } from 'zod';
 import {
+  CandidateSchema,
   CandidatesInput,
   SimulateInput,
   TCandidatesInput,
 } from '../src/shared/validation';
 
-export const candidateSchema = z.object({
-  buy: z.string(),
-  sell: z.string(),
-  profitUsd: z.number(),
-});
+export const candidateSchema = CandidateSchema;
 
 export const candidatesRequestSchema = CandidatesInput;
 export const candidatesResponseSchema = z.object({

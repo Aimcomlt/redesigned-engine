@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { CandidatesInput } from './schemas';
+import { CandidatesInput, SimulateInput } from './schemas';
 
 const validPayload = {
   providerUrl: 'https://example.com',
@@ -38,5 +38,27 @@ test('CandidatesInput rejects invalid address and missing fields', () => {
   expect(result.success).toBe(false);
   expect(result.error?.issues.some(i => i.path.join('.') === 'providerUrl')).toBe(true);
   expect(result.error?.issues.some(i => i.path.join('.') === 'venues.0.address')).toBe(true);
+});
+
+const validSimulatePayload = {
+  candidate: { buy: 'A', sell: 'B', profitUsd: 1 },
+  params: validPayload
+};
+
+test('SimulateInput accepts valid candidate', () => {
+  const result = SimulateInput.safeParse(validSimulatePayload);
+  expect(result.success).toBe(true);
+});
+
+test('SimulateInput rejects non-string venues', () => {
+  const invalidPayload: any = {
+    candidate: { buy: 123, sell: 456, profitUsd: 1 },
+    params: validPayload
+  };
+
+  const result = SimulateInput.safeParse(invalidPayload);
+  expect(result.success).toBe(false);
+  expect(result.error?.issues.some(i => i.path.join('.') === 'candidate.buy')).toBe(true);
+  expect(result.error?.issues.some(i => i.path.join('.') === 'candidate.sell')).toBe(true);
 });
 
