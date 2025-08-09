@@ -35,6 +35,12 @@ MIN_PROFIT_USD	Minimum USD profit required to trade
 SLIPPAGE_BPS	Slippage tolerance in basis points
 AUTH_TOKEN      Bearer token required for `/api/execute`; requests missing or
                 with invalid `Authorization` headers receive a 401 response
+EXEC_ENABLED    Set to `1` to enable `/api/execute`; requires `WS_RPC` and
+                `BUNDLE_SIGNER_KEY`
+WS_RPC          WebSocket RPC endpoint for transaction submission; required
+                when `EXEC_ENABLED=1`
+BUNDLE_SIGNER_KEY Private key for signing bundles; required when
+                `EXEC_ENABLED=1`
 Usage
 CLI
 Run simple candidate discovery & simulation:
@@ -120,9 +126,11 @@ curl -X POST http://localhost:3001/api/simulate \
 
 ### `POST /api/execute`
 Runs the engine with the provided parameters. The server fails to start unless the
-`AUTH_TOKEN` environment variable is set, and requests must include the same value
-via an `Authorization: Bearer` header. Requests without the correct token receive
-an immediate `401 Unauthorized` response before payload validation.
+`AUTH_TOKEN` environment variable is set. When `EXEC_ENABLED=1`, the `WS_RPC` and
+`BUNDLE_SIGNER_KEY` variables must also be configured. Requests must include the
+`AUTH_TOKEN` value via an `Authorization: Bearer` header. Requests without the
+correct token receive an immediate `401 Unauthorized` response before payload
+validation.
 
 **Example**
 
