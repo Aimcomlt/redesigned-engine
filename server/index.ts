@@ -1,5 +1,6 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { json } from 'body-parser';
 import { JsonRpcProvider } from 'ethers';
 import process from 'node:process';
 import { engineEvents } from '../src/utils/hooks';
@@ -11,14 +12,18 @@ import {
   executeRequestSchema,
   executeResponseSchema,
   CandidateParamsInput,
+  CandidatesRequest,
+  SimulateRequest,
+  ExecuteRequest,
 } from './schemas';
+import { validateBody, ParsedRequest } from './middleware/validate';
 import { fetchCandidates } from '../src/core/candidates';
 import { simulateCandidate } from '../src/core/arbitrage';
 import main from '../index';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(json());
 
 // Stream of connected SSE clients
 const clients = new Set<Response>();
@@ -40,18 +45,6 @@ engineEvents.on('candidates', (candidates) =>
 // Heartbeat interval in ms
 const HEARTBEAT_MS = 15000;
 
-function validate(schema: any) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ error: result.error.format() });
-      return;
-    }
-    (req as any).data = result.data;
-    next();
-  };
-}
-
 function toParams(body: CandidateParamsInput) {
   return {
     provider: new JsonRpcProvider(body.providerUrl),
@@ -66,28 +59,28 @@ function toParams(body: CandidateParamsInput) {
   };
 }
 
-app.post('/api/candidates', validate(candidatesRequestSchema), async (req: Request, res: Response) => {
-  const params = toParams((req as any).data);
+app.post('/api/candidates', validateBody<CandidatesRequest>(candidatesRequestSchema), async (req: ParsedRequest<CandidatesRequest>, res: Response) => {
+  const params = toParams(req.parsed);
   const candidates = await fetchCandidates(params);
   const out = candidatesResponseSchema.parse({ candidates });
   res.json(out);
 });
 
-app.post('/api/simulate', validate(simulateRequestSchema), async (req: Request, res: Response) => {
-  const { candidate, params: body } = (req as any).data;
+app.post('/api/simulate', validateBody<SimulateRequest>(simulateRequestSchema), async (req: ParsedRequest<SimulateRequest>, res: Response) => {
+  const { candidate, params: body } = req.parsed;
   const params = { ...toParams(body), candidate } as any;
   const result = await simulateCandidate(params);
   const out = simulateResponseSchema.parse(result);
   res.json(out);
 });
 
-app.post('/api/execute', validate(executeRequestSchema), async (req: Request, res: Response) => {
+app.post('/api/execute', validateBody<ExecuteRequest>(executeRequestSchema), async (req: ParsedRequest<ExecuteRequest>, res: Response) => {
   const auth = req.headers['authorization'];
   if (auth !== `Bearer ${process.env.AUTH_TOKEN}`) {
     res.status(401).json({ error: 'unauthorized' });
     return;
   }
-  const params = toParams((req as any).data);
+  const params = toParams(req.parsed);
   await main(params);
   const out = executeResponseSchema.parse({ ok: true });
   res.json(out);
