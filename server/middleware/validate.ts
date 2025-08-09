@@ -1,18 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import type { ZodSchema } from 'zod';
+import { RequestHandler } from "express";
 
-export interface ParsedRequest<T> extends Request {
-  parsed: T;
-}
-
-export function validateBody<T>(schema: ZodSchema<T>) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ error: result.error.format() });
-      return;
-    }
-    (req as ParsedRequest<T>).parsed = result.data;
+export const validateBody = <T>(safe: (v: unknown) => { success: boolean; data?: T; error?: string }): RequestHandler =>
+  (req, res, next) => {
+    const r = safe(req.body);
+    if (!r.success) return res.status(400).json({ error: r.error || "Invalid payload" });
+    // @ts-expect-error attach parsed
+    req.parsed = r.data as T;
     next();
   };
-}
