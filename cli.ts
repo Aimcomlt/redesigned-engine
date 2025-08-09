@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 import { JsonRpcProvider } from 'ethers';
 import dotenv from 'dotenv';
-import { q98 } from './src/utils/fixed';
+import { toQ96 } from './src/utils/fixed';
 import { buildCandidates, simulateCandidate } from './src/core/arbitrage';
 import type { VenueConfig } from './src/core/candidates';
 
@@ -36,8 +36,8 @@ async function main() {
   const ethUsd = Number(getArg('eth-usd') ?? getEnv('ETH_USD') ?? '0');
   const minProfitUsd = Number(getArg('min-profit-usd') ?? getEnv('MIN_PROFIT_USD') ?? '0');
 
-  const token0 = { decimals: token0Decimals, priceUsd: q98(token0Price) };
-  const token1 = { decimals: token1Decimals, priceUsd: q98(token1Price) };
+  const token0 = { decimals: token0Decimals, priceUsd: toQ96(token0Price) };
+  const token1 = { decimals: token1Decimals, priceUsd: toQ96(token1Price) };
 
   const candidates = await buildCandidates({
     provider,

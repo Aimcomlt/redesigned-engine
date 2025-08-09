@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { buildCandidates, simulateCandidate } from './arbitrage';
 import * as v2 from './v2';
 import * as v3 from './v3';
-import { q98 } from '../utils/fixed';
+import { toQ96 } from '../utils/fixed';
 
 const provider = {
   getFeeData: async () => ({ gasPrice: 1n * 10n ** 9n })
@@ -39,8 +39,8 @@ test('simulateCandidate recomputes profit', async () => {
     provider,
     venues,
     amountIn: 1n * 10n ** 18n,
-    token0: { decimals: 18, priceUsd: q98(2000) },
-    token1: { decimals: 6, priceUsd: q98(1) },
+    token0: { decimals: 18, priceUsd: toQ96(2000) },
+    token1: { decimals: 6, priceUsd: toQ96(1) },
     slippageBps: 0,
     gasUnits: 100000n,
     ethUsd: 2000,
