@@ -7,6 +7,7 @@ import { requireAuth } from "./middleware/auth";
 import { fetchCandidates } from "../src/core/candidates";
 import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
 import { saveSettings } from "../src/core/settings";
+import { logger } from "../src/utils/logger";
 import type {
   CandidateParamsInput,
   CandidatesRequest,
@@ -70,8 +71,7 @@ process.on("exit", destroyProviders);
 const requireEnv = (name: string) => {
   const v = process.env[name];
   if (!v) {
-    // eslint-disable-next-line no-console
-    console.error(`Missing required environment variable ${name}`);
+    logger.error(`Missing required environment variable ${name}`);
     process.exit(1);
   }
   return v;
@@ -91,6 +91,20 @@ const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?:
 const app = express();
 app.use(cors({ origin: ["http://localhost:3000"] }));
 app.use(express.json({ limit: "1mb" }));
+
+// Request/response logging
+app.use((req, res, next) => {
+  const start = Date.now();
+  logger.info({ method: req.method, url: req.originalUrl }, "request received");
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    logger.info(
+      { method: req.method, url: req.originalUrl, status: res.statusCode, duration },
+      "request completed"
+    );
+  });
+  next();
+});
 
 // Global rate limiter
 app.use(
