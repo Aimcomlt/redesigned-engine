@@ -33,7 +33,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "server": "tsx server/index.ts"
+    "server": "tsx server/index.ts",
+    "build:registry": "tsx scripts/buildRegistry.ts"
   },
   "eslintConfig": {
     "extends": [
