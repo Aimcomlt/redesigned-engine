@@ -87,10 +87,16 @@ function assertEnv(): void {
 
 assertEnv();
 
-const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
-  const r = schema.safeParse(v);
-  return r.success ? { success: true, data: r.data as T } : { success: false, error: r.error?.message };
-};
+function wrap<T>(schema: {
+  safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } };
+}) {
+  return (v: unknown) => {
+    const r = schema.safeParse(v);
+    return r.success
+      ? { success: true, data: r.data as T }
+      : { success: false, error: r.error?.message };
+  };
+}
 
 const app = express();
 app.use(cors({ origin: ["http://localhost:3000"] }));
