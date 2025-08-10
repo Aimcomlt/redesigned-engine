@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { JsonRpcProvider } from "ethers";
 import rateLimit from "express-rate-limit";
 import { validateBody } from "./middleware/validate";
@@ -88,7 +89,8 @@ const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?:
 };
 
 const app = express();
-app.use(express.json());
+app.use(cors({ origin: ["http://localhost:3000"] }));
+app.use(express.json({ limit: "1mb" }));
 
 // Global rate limiter
 app.use(
