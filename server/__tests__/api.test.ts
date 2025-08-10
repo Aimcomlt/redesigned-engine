@@ -109,7 +109,10 @@ describe('API endpoints', () => {
   });
 
   test('POST /api/execute returns 403 when disabled', async () => {
-    const res = await request(app).post('/api/execute').send(execParams);
+    const res = await request(app)
+      .post('/api/execute')
+      .set('Authorization', 'Bearer t')
+      .send(execParams);
     expect(res.status).toBe(403);
   });
 
@@ -122,6 +125,20 @@ describe('API endpoints', () => {
     ({ default: app } = await import('../index'));
     const res = await request(app).post('/api/execute').send(execParams);
     expect(res.status).toBe(401);
+  });
+
+  test('POST /api/execute returns 400 with invalid payload', async () => {
+    vi.resetModules();
+    process.env.EXEC_ENABLED = '1';
+    process.env.AUTH_TOKEN = 't';
+    process.env.WS_RPC = 'ws://localhost';
+    process.env.BUNDLE_SIGNER_KEY = '0xabc';
+    ({ default: app } = await import('../index'));
+    const res = await request(app)
+      .post('/api/execute')
+      .set('Authorization', 'Bearer t')
+      .send({ routeCalldata: '0x' });
+    expect(res.status).toBe(400);
   });
 
   test('GET /metrics returns 401 without token', async () => {
