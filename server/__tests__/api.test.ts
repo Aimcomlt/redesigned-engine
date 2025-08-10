@@ -46,6 +46,14 @@ const execParams = {
   dryRun: true,
 };
 
+const settingsParams = {
+  chainId: 1,
+  rpcUrl: 'http://localhost:8545',
+  minProfitUsd: 1,
+  slippageBps: 10,
+  gasUnits: '21000',
+};
+
 describe('API endpoints', () => {
   let app: any;
 
@@ -119,6 +127,19 @@ describe('API endpoints', () => {
   test('GET /metrics returns 401 without token', async () => {
     const res = await request(app).get('/metrics');
     expect(res.status).toBe(401);
+  });
+
+  test('POST /api/settings returns 401 without token', async () => {
+    const res = await request(app).post('/api/settings').send(settingsParams);
+    expect(res.status).toBe(401);
+  });
+
+  test('POST /api/settings returns 400 with invalid payload', async () => {
+    const res = await request(app)
+      .post('/api/settings')
+      .set('Authorization', 'Bearer t')
+      .send({ ...settingsParams, chainId: 0 });
+    expect(res.status).toBe(400);
   });
 
   test('POST /api/execute processes request when enabled', async () => {

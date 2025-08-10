@@ -6,8 +6,17 @@ import { requireAuth } from "./middleware/auth";
 import { fetchCandidates } from "../src/core/candidates";
 import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
 import { saveSettings } from "../src/core/settings";
-import type { CandidateParamsInput, CandidatesRequest, SimulateRequest } from "./schemas";
-import { candidatesRequestSchema, simulateRequestSchema } from "./schemas";
+import type {
+  CandidateParamsInput,
+  CandidatesRequest,
+  SimulateRequest,
+  SettingsRequest,
+} from "./schemas";
+import {
+  candidatesRequestSchema,
+  simulateRequestSchema,
+  settingsRequestSchema,
+} from "./schemas";
 import type { Candidate } from "../src/core/candidates";
 import { stream } from "./stream";
 import { execute } from "./routes/execute";
@@ -101,9 +110,16 @@ app.post("/api/simulate", requireAuth, validateBody(wrap<SimulateRequest>(simula
 
 app.post("/api/execute", execute);
 
-app.post("/api/settings", async (req, res) => {
-  res.json(await saveSettings(req.body));
-});
+app.post(
+  "/api/settings",
+  requireAuth,
+  validateBody(wrap<SettingsRequest>(settingsRequestSchema)),
+  async (req, res) => {
+    // @ts-expect-error injected
+    const body = req.parsed;
+    res.json(await saveSettings(body));
+  }
+);
 
 export function buildSimulateParams(body: CandidateParamsInput, candidate: Candidate): SimulateCandidateParams {
   const provider = getProvider(body.providerUrl);
