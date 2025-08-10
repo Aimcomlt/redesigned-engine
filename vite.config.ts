@@ -1,23 +1,36 @@
-import { defineConfig } from 'vite'
+import path from 'node:path'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
-  // Make absolutely sure anything in src with JSX/TSX gets transformed
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '#server': path.resolve(__dirname, 'server')
+    }
+  },
   esbuild: {
     jsx: 'automatic',
-    include: /src\/.*\.(tsx|ts|jsx|js)$/,
-    loader: 'tsx' // default is smart, but we force TSX to avoid “preserve”-style issues
+    include: [
+      /src\/.*\.(tsx|ts|jsx|js)$/,
+      /server\/.*\.(tsx|ts|jsx|js)$/
+    ],
+    loader: 'tsx'
   },
-  // And make the dependency pre-bundler parse .js that contains JSX
   optimizeDeps: {
     esbuildOptions: {
       loader: {
         '.tsx': 'tsx',
         '.ts': 'ts',
         '.jsx': 'jsx',
-        '.js': 'jsx' // in case any local deps/components still use JSX in .js
+        '.js': 'jsx'
       }
     }
+  },
+  test: {
+    environment: 'node',
+    environmentMatchGlobs: [['src/**', 'jsdom']]
   }
 })
+
