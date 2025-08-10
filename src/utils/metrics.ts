@@ -1,4 +1,4 @@
-import { Counter, Registry } from 'prom-client';
+import { Counter, Gauge, Registry } from 'prom-client';
 
 /** Central registry for all application metrics */
 export const register = new Registry();
@@ -21,5 +21,12 @@ export const failureCounter = new Counter({
 export const gasCounter = new Counter({
   name: 'trade_gas_used_total',
   help: 'Total gas consumed by trades',
+  registers: [register]
+});
+
+/** Tracks current number of connected SSE clients */
+export const activeSseClients = new Gauge({
+  name: 'sse_clients_active',
+  help: 'Number of active SSE clients',
   registers: [register]
 });

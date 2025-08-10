@@ -171,6 +171,7 @@ export {
   successCounter,
   failureCounter,
   gasCounter,
+  activeSseClients,
   register as metricsRegistry
 } from './src/utils/metrics';
 export { checkAllowances };
