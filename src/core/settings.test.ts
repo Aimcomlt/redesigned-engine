@@ -2,7 +2,7 @@ import { afterEach, expect, test } from 'vitest';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { saveSettings, type Settings } from './settings';
+import { saveSettings, type Settings, isInside } from './settings';
 
 let tmpFile: string | null = null;
 
@@ -51,4 +51,16 @@ test('rejects paths outside allowed directory', async () => {
   };
   const result = await saveSettings(input);
   expect(result.success).toBe(false);
+});
+
+test('isInside identifies paths within base directory', () => {
+  const base = process.cwd();
+  const target = join(base, 'foo', 'bar.txt');
+  expect(isInside(base, target)).toBe(true);
+});
+
+test('isInside rejects paths outside base directory', () => {
+  const base = process.cwd();
+  const target = join(base, '..', 'bar.txt');
+  expect(isInside(base, target)).toBe(false);
 });
