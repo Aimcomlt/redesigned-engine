@@ -22,20 +22,44 @@ import { stream } from "./stream";
 import { execute } from "./routes/execute";
 import { register } from "../src/utils/metrics";
 
-const providerCache = new Map<string, JsonRpcProvider>();
-const getProvider = (url: string): JsonRpcProvider => {
-  let provider = providerCache.get(url);
-  if (!provider) {
-    provider = new JsonRpcProvider(url);
-    providerCache.set(url, provider);
+interface CachedProvider {
+  provider: JsonRpcProvider;
+  lastUsed: number;
+}
+
+const providerCache = new Map<string, CachedProvider>();
+
+const PROVIDER_TTL_MS = Number(process.env.PROVIDER_TTL_MS ?? 5 * 60 * 1000);
+
+const cleanupProviders = () => {
+  const now = Date.now();
+  for (const [key, { provider, lastUsed }] of providerCache) {
+    if (now - lastUsed > PROVIDER_TTL_MS) {
+      providerCache.delete(key);
+      provider.destroy();
+    }
   }
+};
+
+export const getProvider = (url: string): JsonRpcProvider => {
+  cleanupProviders();
+  const cached = providerCache.get(url);
+  const now = Date.now();
+  if (cached) {
+    cached.lastUsed = now;
+    return cached.provider;
+  }
+  const provider = new JsonRpcProvider(url);
+  providerCache.set(url, { provider, lastUsed: now });
   return provider;
 };
 
-const destroyProviders = () => {
-  for (const provider of providerCache.values()) {
+export const destroyProviders = () => {
+  cleanupProviders();
+  for (const { provider } of providerCache.values()) {
     provider.destroy();
   }
+  providerCache.clear();
 };
 
 process.on("SIGINT", destroyProviders);
