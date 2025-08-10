@@ -10,7 +10,7 @@ const schema = z
     CHAIN_ID: z.coerce.number().int().positive().default(1),
     MIN_PROFIT_USD: z.coerce.number().nonnegative(),
     SLIPPAGE_BPS: z.coerce.number().int().nonnegative(),
-    AUTH_TOKEN: z.string().optional(),
+    AUTH_TOKEN: z.string().min(1),
     EXEC_ENABLED: z.enum(['0', '1']).optional(),
     WS_RPC: z.string().url().optional(),
     BUNDLE_SIGNER_KEY: z
@@ -33,7 +33,7 @@ export type Config = {
   chainId: number;
   minProfitUsd: number;
   slippageBps: number;
-  authToken?: string;
+  authToken: string;
   execEnabled: boolean;
   wsRpc?: string;
   bundleSignerKey?: string;

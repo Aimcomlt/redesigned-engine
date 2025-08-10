@@ -8,6 +8,7 @@ const baseEnv = {
   PRIVATE_KEY: '0x' + '1'.repeat(64),
   MIN_PROFIT_USD: '0',
   SLIPPAGE_BPS: '0',
+  AUTH_TOKEN: 't',
 };
 
 function setEnv(overrides: Record<string, string | undefined> = {}) {
@@ -25,6 +26,11 @@ describe('loadConfig', () => {
     expect(cfg.execEnabled).toBe(false);
     expect(cfg.wsRpc).toBeUndefined();
     expect(cfg.bundleSignerKey).toBeUndefined();
+  });
+
+  test('requires AUTH_TOKEN', async () => {
+    setEnv({ AUTH_TOKEN: undefined });
+    await expect(loadConfig()).rejects.toThrow('AUTH_TOKEN');
   });
 
   test('requires WS_RPC when EXEC_ENABLED=1', async () => {

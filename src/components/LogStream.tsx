@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 type StreamEvent =
   | { type: 'log'; data: string }
@@ -8,16 +9,21 @@ export default function LogStream() {
   const [events, setEvents] = useState<StreamEvent[]>([]);
 
   useEffect(() => {
-    const es = new EventSource('/api/stream');
-    es.addEventListener('log', (e) => {
-      const data = JSON.parse((e as MessageEvent).data);
-      setEvents((l) => [...l, { type: 'log', data }]);
+    const ctrl = new AbortController();
+    void fetchEventSource('/api/stream', {
+      signal: ctrl.signal,
+      headers: { Authorization: `Bearer ${import.meta.env.VITE_AUTH_TOKEN}` },
+      onmessage(ev) {
+        const data = JSON.parse(ev.data);
+        if (ev.event === 'log') {
+          setEvents((l) => [...l, { type: 'log', data }]);
+        }
+        if (ev.event === 'candidate') {
+          setEvents((l) => [...l, { type: 'candidate', data }]);
+        }
+      },
     });
-    es.addEventListener('candidate', (e) => {
-      const data = JSON.parse((e as MessageEvent).data);
-      setEvents((l) => [...l, { type: 'candidate', data }]);
-    });
-    return () => es.close();
+    return () => ctrl.abort();
   }, []);
 
   return (
