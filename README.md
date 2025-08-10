@@ -37,11 +37,14 @@ AUTH_TOKEN      Bearer token required for `/api/execute`; requests missing or
                 with invalid `Authorization` headers receive a 401 response
 EXEC_ENABLED    Set to `1` to enable `/api/execute`; requires `WS_RPC` and
                 `BUNDLE_SIGNER_KEY`
-WS_RPC          WebSocket RPC endpoint for transaction submission; required
-                when `EXEC_ENABLED=1`
-BUNDLE_SIGNER_KEY Private key for signing bundles; required when
-                `EXEC_ENABLED=1`
-Usage
+  WS_RPC          WebSocket RPC endpoint for transaction submission; required
+                  when `EXEC_ENABLED=1`
+  BUNDLE_SIGNER_KEY Private key for signing bundles; required when
+                  `EXEC_ENABLED=1`
+  SETTINGS_FILE   Optional path to persist settings JSON. Must resolve within
+                  the project root; directories are created automatically and
+                  paths outside this base cause saving to fail.
+  Usage
 CLI
 Run simple candidate discovery & simulation:
 

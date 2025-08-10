@@ -15,7 +15,7 @@ afterEach(async () => {
 });
 
 test('saves valid settings to file', async () => {
-  tmpFile = join(tmpdir(), `settings-${Date.now()}.json`);
+  tmpFile = join(process.cwd(), `settings-${Date.now()}.json`);
   process.env.SETTINGS_FILE = tmpFile;
 
   const input: Settings = {
@@ -33,8 +33,22 @@ test('saves valid settings to file', async () => {
 });
 
 test('returns error for invalid settings', async () => {
-  tmpFile = join(tmpdir(), `settings-${Date.now()}-invalid.json`);
+  tmpFile = join(process.cwd(), `settings-${Date.now()}-invalid.json`);
   process.env.SETTINGS_FILE = tmpFile;
   const result = await saveSettings({ chainId: 0 });
+  expect(result.success).toBe(false);
+});
+
+test('rejects paths outside allowed directory', async () => {
+  tmpFile = join(tmpdir(), `settings-${Date.now()}.json`);
+  process.env.SETTINGS_FILE = tmpFile;
+  const input: Settings = {
+    chainId: 1,
+    rpcUrl: 'http://localhost',
+    minProfitUsd: 1,
+    slippageBps: 10,
+    gasUnits: '21000'
+  };
+  const result = await saveSettings(input);
   expect(result.success).toBe(false);
 });
