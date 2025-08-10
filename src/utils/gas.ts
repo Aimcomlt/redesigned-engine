@@ -1,4 +1,4 @@
-import { type Provider, formatUnits } from 'ethers';
+import { type Provider } from 'ethers';
 
 export interface EstimateGasUsdParams {
   /** Provider for accessing network fee data */
@@ -23,6 +23,7 @@ export async function estimateGasUsd(
     throw new Error('Gas price data not available');
   }
   const wei = priceWei * gasUnits;
-  const ethValue = parseFloat(formatUnits(wei, 18));
+  // Convert to ETH without intermediate string/float parsing to preserve precision
+  const ethValue = Number(wei) / 1e18;
   return ethValue * ethUsd;
 }
