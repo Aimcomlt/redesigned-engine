@@ -11,6 +11,26 @@ import { stream } from "./stream";
 import { execute } from "./routes/execute";
 import { register } from "../src/utils/metrics";
 
+const providerCache = new Map<string, JsonRpcProvider>();
+const getProvider = (url: string): JsonRpcProvider => {
+  let provider = providerCache.get(url);
+  if (!provider) {
+    provider = new JsonRpcProvider(url);
+    providerCache.set(url, provider);
+  }
+  return provider;
+};
+
+const destroyProviders = () => {
+  for (const provider of providerCache.values()) {
+    provider.destroy();
+  }
+};
+
+process.on("SIGINT", destroyProviders);
+process.on("SIGTERM", destroyProviders);
+process.on("exit", destroyProviders);
+
 const requireEnv = (name: string) => {
   const v = process.env[name];
   if (!v) {
@@ -47,7 +67,7 @@ app.get("/metrics", async (_req, res) => {
 app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
   const body = req.parsed;
-  const provider = new JsonRpcProvider(body.providerUrl);
+  const provider = getProvider(body.providerUrl);
   const params = {
     provider,
     venues: body.venues,
@@ -76,7 +96,7 @@ app.post("/api/settings", async (req, res) => {
 });
 
 export function buildSimulateParams(body: CandidateParamsInput, candidate: Candidate): SimulateCandidateParams {
-  const provider = new JsonRpcProvider(body.providerUrl);
+  const provider = getProvider(body.providerUrl);
   return {
     candidate,
     provider,
