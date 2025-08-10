@@ -81,8 +81,11 @@ await main({
   minProfitUsd: 5
 });
 HTTP API
-The server exposes HTTP endpoints for candidate discovery, simulation, execution, and streaming updates. All endpoints require
-a valid `Authorization: Bearer $AUTH_TOKEN` header and are rate-limited to 100 requests per minute per IP.
+The server exposes HTTP endpoints for candidate discovery, simulation, execution, streaming updates, and health checks. All endpoints require
+a valid `Authorization: Bearer $AUTH_TOKEN` header and are rate-limited to 100 requests per minute per IP unless noted otherwise.
+
+### `GET /healthz`
+Basic health check endpoint. Returns `ok` when the server is running. If `RPC_URL` is set, the server will verify connectivity before responding. No authentication is required.
 
 ### `POST /api/candidates`
 Returns a list of potential arbitrage trades.
