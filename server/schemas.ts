@@ -5,7 +5,7 @@ import {
   SimulateInput,
   TCandidatesInput,
   TokenSchema,
-} from '../src/shared/validation';
+} from '@/shared/validation';
 
 export const candidateSchema = CandidateSchema;
 

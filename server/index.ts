@@ -4,10 +4,10 @@ import { JsonRpcProvider } from "ethers";
 import rateLimit from "express-rate-limit";
 import { validateBody } from "./middleware/validate";
 import { requireAuth } from "./middleware/auth";
-import { fetchCandidates } from "../src/core/candidates";
-import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
-import { saveSettings } from "../src/core/settings";
-import { logger } from "../src/utils/logger";
+import { fetchCandidates } from "@/core/candidates";
+import { simulateCandidate, type SimulateCandidateParams } from "@/core/arbitrage";
+import { saveSettings } from "@/core/settings";
+import { logger } from "@/utils/logger";
 import type {
   CandidateParamsInput,
   CandidatesRequest,
@@ -19,11 +19,11 @@ import {
   simulateRequestSchema,
   settingsRequestSchema,
 } from "./schemas";
-import type { Candidate } from "../src/core/candidates";
+import type { Candidate } from "@/core/candidates";
 import { stream } from "./stream";
 import { execute } from "./routes/execute";
-import { vSafe, ExecuteInput } from "../src/shared/validation/valibot-schemas";
-import { register } from "../src/utils/metrics";
+import { vSafe, ExecuteInput } from "@/shared/validation/valibot-schemas";
+import { register } from "@/utils/metrics";
 
 interface CachedProvider {
   provider: JsonRpcProvider;

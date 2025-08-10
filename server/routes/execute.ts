@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { executeWithRelay } from "../../src/exec/submit";
-import { FlashbotsRelay } from "../../src/exec/relays/flashbots";
+import { executeWithRelay } from "@/exec/submit";
+import { FlashbotsRelay } from "@/exec/relays/flashbots";
 
 const EXEC_ENABLED = process.env.EXEC_ENABLED === "1";
 let relay: FlashbotsRelay;
