@@ -14,7 +14,8 @@ export default defineConfig({
     jsx: 'automatic',
     include: [
       /src\/.*\.(tsx|ts|jsx|js)$/,
-      /server\/.*\.(tsx|ts|jsx|js)$/
+      /server\/.*\.(tsx|ts|jsx|js)$/,
+      /tests\/.*\.(tsx|ts|jsx|js)$/
     ],
     loader: 'tsx'
   },
@@ -29,8 +30,10 @@ export default defineConfig({
     }
   },
   test: {
-    environment: 'node',
-    environmentMatchGlobs: [['src/**', 'jsdom']]
+    projects: [
+      { environment: 'node', include: ['server/**/*.ts', 'tests/**/*.ts'] },
+      { environment: 'jsdom', include: ['src/**/*.ts', 'src/**/*.tsx'] }
+    ]
   }
 })
 
