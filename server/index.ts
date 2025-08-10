@@ -115,6 +115,19 @@ app.use(
   })
 );
 
+// Health check endpoint
+app.get("/healthz", async (_req, res) => {
+  try {
+    const url = process.env.RPC_URL;
+    if (url) {
+      await getProvider(url).getBlockNumber();
+    }
+    res.send("ok");
+  } catch {
+    res.status(500).send("error");
+  }
+});
+
 // Server-Sent Events stream for candidates and logs
 app.get("/api/stream", requireAuth, stream);
 
