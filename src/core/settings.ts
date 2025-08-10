@@ -17,6 +17,11 @@ export type Settings = z.infer<typeof settingsSchema>;
 const baseDir = path.resolve(__dirname, "../../");
 const defaultFile = path.join(baseDir, "settings.json");
 
+export function isInside(baseDir: string, target: string): boolean {
+  const relative = path.relative(path.resolve(baseDir), path.resolve(target));
+  return !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
 export async function saveSettings(
   input: unknown
 ): Promise<{ success: true; data: Settings } | { success: false; error: string }> {
@@ -28,7 +33,7 @@ export async function saveSettings(
   }
   const filePath = path.resolve(process.env.SETTINGS_FILE ?? defaultFile);
   // Ensure the resolved file path stays within the allowed base directory.
-  if (path.relative(baseDir, filePath).startsWith("..")) {
+  if (!isInside(baseDir, filePath)) {
     return { success: false, error: "Settings path escapes allowed directory" };
   }
   try {
