@@ -1,6 +1,8 @@
 import express from "express";
 import { JsonRpcProvider } from "ethers";
+import rateLimit from "express-rate-limit";
 import { validateBody } from "./middleware/validate";
+import { requireAuth } from "./middleware/auth";
 import { fetchCandidates } from "../src/core/candidates";
 import { simulateCandidate, type SimulateCandidateParams } from "../src/core/arbitrage";
 import { saveSettings } from "../src/core/settings";
@@ -55,16 +57,24 @@ const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?:
 const app = express();
 app.use(express.json());
 
+// Global rate limiter
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100,
+  })
+);
+
 // Server-Sent Events stream for candidates and logs
-app.get("/api/stream", stream);
+app.get("/api/stream", requireAuth, stream);
 
 // Expose metrics for Prometheus scraping
-app.get("/metrics", async (_req, res) => {
+app.get("/metrics", requireAuth, async (_req, res) => {
   res.set("Content-Type", register.contentType);
   res.send(await register.metrics());
 });
 
-app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
+app.post("/api/candidates", requireAuth, validateBody(wrap<CandidatesRequest>(candidatesRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
   const body = req.parsed;
   const provider = getProvider(body.providerUrl);
@@ -83,7 +93,7 @@ app.post("/api/candidates", validateBody(wrap<CandidatesRequest>(candidatesReque
   res.json({ candidates: list });
 });
 
-app.post("/api/simulate", validateBody(wrap<SimulateRequest>(simulateRequestSchema)), async (req, res) => {
+app.post("/api/simulate", requireAuth, validateBody(wrap<SimulateRequest>(simulateRequestSchema)), async (req, res) => {
   // @ts-expect-error injected
   const params = buildSimulateParams(req.parsed.params, req.parsed.candidate);
   res.json(await simulateCandidate(params));
