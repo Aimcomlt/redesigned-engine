@@ -142,6 +142,15 @@ describe('API endpoints', () => {
     expect(res.status).toBe(400);
   });
 
+  test('POST /api/candidates rejects oversized payload', async () => {
+    const bigPayload = { ...baseParams, filler: 'a'.repeat(1024 * 1024 * 2) };
+    const res = await request(app)
+      .post('/api/candidates')
+      .set('Authorization', 'Bearer t')
+      .send(bigPayload);
+    expect(res.status).toBe(413);
+  });
+
   test('POST /api/execute processes request when enabled', async () => {
     vi.resetModules();
     vi.doMock('../../src/core/candidates', () => {
