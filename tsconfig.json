@@ -4,6 +4,11 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "#server/*": ["server/*"]
+    },
     "jsx": "react-jsx",
     "types": ["vite/client", "react", "react-dom"],
     "strict": true,
@@ -17,6 +22,6 @@
     "sourceMap": true,
     "noEmit": true
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "server", "tests", "vite-env.d.ts"]
 }
 
