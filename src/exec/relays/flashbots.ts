@@ -42,14 +42,22 @@ export class FlashbotsRelay implements Relay {
         Buffer.from(JSON.stringify(body))
       );
 
-      const res = await fetch(this.opts.rpcUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Flashbots-Signature": `${this.signer.address}:${signature}`,
-        },
-        body: JSON.stringify(body),
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      let res: Response;
+      try {
+        res = await fetch(this.opts.rpcUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Flashbots-Signature": `${this.signer.address}:${signature}`,
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
       if (!res.ok) {
         try {
           const err = await res.json();
@@ -69,6 +77,9 @@ export class FlashbotsRelay implements Relay {
         return { ok: false, error: msg };
       }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return { ok: false, error: "timeout" };
+      }
       const msg = err instanceof Error ? err.message : String(err);
       return { ok: false, error: msg };
     }
