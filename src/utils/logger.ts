@@ -14,6 +14,7 @@ export interface TradeContext {
  * `withTrade` to create a child logger bound to a particular trade.
  */
 export const logger = pino({
+  level: process.env.LOG_LEVEL ?? 'info',
   base: {
     tradeId: undefined,
     blockNumber: undefined,

@@ -10,7 +10,7 @@ Candidate builder & simulator – Identify potential trades and recompute expect
 
 Risk controls – Slippage checks, allowance readiness, and “canary” test trades.
 
-Metrics & logging – Pino-based logging plus Prometheus counters for success/failure/gas usage.
+Metrics & logging – Pino-based logging (configurable via `LOG_LEVEL`) plus Prometheus counters for success/failure/gas usage.
 
 TypeScript-first design – Ships with typings and strict compile options.
 
@@ -45,6 +45,8 @@ EXEC_ENABLED    Set to `1` to enable `/api/execute`; requires `WS_RPC` and
   SETTINGS_FILE   Optional path to persist settings JSON. Must resolve within
                   the project root; directories are created automatically and
                   paths outside this base cause saving to fail.
+LOG_LEVEL       Minimum log level for logger output (e.g., `debug`, `info`).
+                Defaults to `info`.
   Usage
 CLI
 Run simple candidate discovery & simulation:
