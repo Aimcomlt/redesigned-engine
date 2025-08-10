@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { eventBus } from "../src/core/bus";
+import { activeSseClients } from "../src/utils/metrics";
 
 const HEARTBEAT_MS = 15_000;
 
@@ -9,6 +10,8 @@ export function stream(req: Request, res: Response) {
   res.setHeader("Connection", "keep-alive");
   // flush headers to establish SSE with client
   res.flushHeaders?.();
+
+  activeSseClients.inc();
 
   const push = (type: string, data: unknown) =>
     res.write(`event: ${type}\ndata:${JSON.stringify(data)}\n\n`);
@@ -28,5 +31,6 @@ export function stream(req: Request, res: Response) {
     eventBus.off("candidate", onCand);
     eventBus.off("log", onLog);
     eventBus.off("block", onBlock);
+    activeSseClients.dec();
   });
 }
