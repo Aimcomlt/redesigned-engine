@@ -1,4 +1,5 @@
-import { TCandidatesInput, TSimulateInput } from '../shared/validation';
+import type { TSimulateInput } from '../shared/validation';
+import type { TCandidatesInput } from '../shared/validation'
 
 const json = (input: any) =>
   JSON.stringify(input, (_, v) =>
