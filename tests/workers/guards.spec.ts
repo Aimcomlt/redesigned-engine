@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { asReserveSnapshot, isBigintStr } from "../../src/workers/guards";
+import { asReserveSnapshot, isBigintStr } from "@/workers/guards";
 
 describe("worker guards", () => {
   it("maps reserve snapshot", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { runLoop } from "../../src/core/strategy";
-import { normalizeStartup } from "../../src/core/context";
+import { runLoop } from "@/core/strategy";
+import { normalizeStartup } from "@/core/context";
 
 describe("loop perf (sanity)", () => {
   it("runs a couple of iterations quickly", async () => {

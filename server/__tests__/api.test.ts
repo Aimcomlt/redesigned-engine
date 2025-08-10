@@ -61,13 +61,13 @@ describe('API endpoints', () => {
     vi.resetModules();
     delete process.env.EXEC_ENABLED;
     process.env.AUTH_TOKEN = 't';
-    vi.doMock('../../src/core/candidates', () => {
+    vi.doMock('@/core/candidates', () => {
       const fetchCandidates = vi.fn(async () => [
         { buy: 'A', sell: 'B', profitUsd: 1 },
       ]);
       return { __esModule: true, fetchCandidates, default: { fetchCandidates } };
     });
-    vi.doMock('../../src/core/arbitrage', () => {
+    vi.doMock('@/core/arbitrage', () => {
       const simulateCandidate = vi.fn(async () => ({
         buy: 'A',
         sell: 'B',
@@ -170,11 +170,11 @@ describe('API endpoints', () => {
 
   test('POST /api/execute processes request when enabled', async () => {
     vi.resetModules();
-    vi.doMock('../../src/core/candidates', () => {
+    vi.doMock('@/core/candidates', () => {
       const fetchCandidates = vi.fn(async () => []);
       return { __esModule: true, fetchCandidates, default: { fetchCandidates } };
     });
-    vi.doMock('../../src/core/arbitrage', () => {
+    vi.doMock('@/core/arbitrage', () => {
       const simulateCandidate = vi.fn(async () => ({}));
       return { __esModule: true, simulateCandidate, default: { simulateCandidate } };
     });

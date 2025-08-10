@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test, beforeAll } from 'vitest';
 import { JsonRpcProvider } from 'ethers';
-import type { Candidate } from '../src/core/candidates';
+import type { Candidate } from '@/core/candidates';
 import type { CandidateParamsInput } from './schemas';
-import type { SimulateCandidateParams } from '../src/core/arbitrage';
+import type { SimulateCandidateParams } from '@/core/arbitrage';
 
 let buildSimulateParams: (body: CandidateParamsInput, candidate: Candidate) => SimulateCandidateParams;
 

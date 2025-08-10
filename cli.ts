@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 import { JsonRpcProvider } from 'ethers';
 import dotenv from 'dotenv';
-import { toQ96 } from './src/utils/fixed';
-import { buildCandidates, simulateCandidate } from './src/core/arbitrage';
-import type { VenueConfig } from './src/core/candidates';
+import { toQ96 } from '@/utils/fixed';
+import { buildCandidates, simulateCandidate } from '@/core/arbitrage';
+import type { VenueConfig } from '@/core/candidates';
 
 dotenv.config();
 

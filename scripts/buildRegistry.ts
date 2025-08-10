@@ -1,7 +1,7 @@
 import { createPublicClient, http, getAddress } from "viem";
 import { mainnet } from "viem/chains";
 import fs from "node:fs";
-import tokens from "../src/chain/tokens.mainnet.json" assert { type: "json" };
+import tokens from "@/chain/tokens.mainnet.json" assert { type: "json" };
 
 const client = createPublicClient({ chain: mainnet, transport: http(process.env.HTTP_RPC || `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`) });
 

@@ -10,7 +10,7 @@ describe('SSE client metrics', () => {
     vi.resetModules();
     process.env.AUTH_TOKEN = 't';
     const { default: app } = await import('../index');
-    const { register } = await import('../../src/utils/metrics');
+    const { register } = await import('@/utils/metrics');
     const server = app.listen(0);
 
     try {

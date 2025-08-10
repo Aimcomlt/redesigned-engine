@@ -1,12 +1,12 @@
-import type { CandidateParams, Candidate } from './src/core/candidates';
+import type { CandidateParams, Candidate } from '@/core/candidates';
 import {
   buildCandidates as buildArbCandidates,
   simulateCandidate as simulateArbCandidate
-} from './src/core/arbitrage';
-import { checkSlippage as slippageGuard } from './src/risk/slippage';
-import { logger } from './src/utils/logger';
+} from '@/core/arbitrage';
+import { checkSlippage as slippageGuard } from '@/risk/slippage';
+import { logger } from '@/utils/logger';
 import { Contract } from 'ethers';
-import { successCounter, failureCounter, gasCounter } from './src/utils/metrics';
+import { successCounter, failureCounter, gasCounter } from '@/utils/metrics';
 
 /**
  * Simple readiness check ensuring token allowances are configured.
@@ -149,30 +149,30 @@ export {
   simulateV2Swap,
   submitV2Swap,
   quoteOutV2
-} from './src/core/v2';
+} from '@/core/v2';
 export {
   getV3Quote,
   simulateV3Swap,
   submitV3Swap
-} from './src/core/v3';
-export { fetchCandidates } from './src/core/candidates';
-export { buildCandidates, simulateCandidate } from './src/core/arbitrage';
-export { buildStrategy } from './src/core/strategy';
+} from '@/core/v3';
+export { fetchCandidates } from '@/core/candidates';
+export { buildCandidates, simulateCandidate } from '@/core/arbitrage';
+export { buildStrategy } from '@/core/strategy';
 export {
   checkSlippage,
   calcMinOut,
   computeSlippageAdjustedOut,
   DEFAULT_SLIPPAGE_BPS,
   DEFAULT_SLIPPAGE
-} from './src/risk/slippage';
-export { checkGuards } from './src/risk/guards';
-export { logger, withTrade } from './src/utils/logger';
+} from '@/risk/slippage';
+export { checkGuards } from '@/risk/guards';
+export { logger, withTrade } from '@/utils/logger';
 export {
   successCounter,
   failureCounter,
   gasCounter,
   activeSseClients,
   register as metricsRegistry
-} from './src/utils/metrics';
+} from '@/utils/metrics';
 export { checkAllowances };
 export default main;

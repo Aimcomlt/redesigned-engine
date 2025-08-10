@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import http from "node:http";
-import { FlashbotsRelay } from "../../src/exec/relays/flashbots";
+import { FlashbotsRelay } from "@/exec/relays/flashbots";
 
 describe("FlashbotsRelay", () => {
   it("times out on slow relay", async () => {

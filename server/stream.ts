@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { eventBus } from "../src/core/bus";
-import { activeSseClients } from "../src/utils/metrics";
+import { eventBus } from "@/core/bus";
+import { activeSseClients } from "@/utils/metrics";
 
 const HEARTBEAT_MS = 15_000;
 

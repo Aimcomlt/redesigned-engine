@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CandidatesInput, vParse, vSafe } from "../../src/shared/validation/valibot-schemas";
+import { CandidatesInput, vParse, vSafe } from "@/shared/validation/valibot-schemas";
 
 describe("CandidatesInput", () => {
   it("accepts a valid payload", () => {
