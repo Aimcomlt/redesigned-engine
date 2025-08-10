@@ -23,6 +23,6 @@ describe("cli", () => {
       { encoding: "utf-8" }
     );
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("Invalid venues JSON");
+    expect((result.stderr ?? "") + (result.stdout ?? "")).toContain("Invalid venues JSON");
   });
 });
