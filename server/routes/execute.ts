@@ -7,10 +7,16 @@ import { FlashbotsRelay } from "../../src/exec/relays/flashbots";
 const EXEC_ENABLED = process.env.EXEC_ENABLED === "1";
 const AUTH_TOKEN = process.env.AUTH_TOKEN || "";
 
-const relay = new FlashbotsRelay({
-  rpcUrl: process.env.WS_RPC || "",
-  bundleSignerKey: process.env.BUNDLE_SIGNER_KEY || ""
-});
+let relay: FlashbotsRelay;
+function getRelay(): FlashbotsRelay {
+  if (!relay) {
+    relay = new FlashbotsRelay({
+      rpcUrl: process.env.WS_RPC || "",
+      bundleSignerKey: process.env.BUNDLE_SIGNER_KEY || "",
+    });
+  }
+  return relay;
+}
 
 export async function execute(req: Request, res: Response) {
   if (!EXEC_ENABLED) return res.status(403).json({ error: "execution disabled" });
@@ -29,7 +35,15 @@ export async function execute(req: Request, res: Response) {
   const r = vSafe(ExecuteInput, req.body);
   if (!r.success) return res.status(400).json({ error: r.error });
 
-  const out = await executeWithRelay(relay, {
+  let rel: FlashbotsRelay;
+  try {
+    rel = getRelay();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ ok: false, error: msg });
+  }
+
+  const out = await executeWithRelay(rel, {
     ...r.data,
     maxFeePerGas: BigInt(r.data.maxFeePerGas),
     maxPriorityFeePerGas: BigInt(r.data.maxPriorityFeePerGas)

@@ -10,25 +10,27 @@ import { JsonRpcProvider, Wallet } from "ethers";
  * without throwing.
  */
 export class FlashbotsRelay implements Relay {
-  constructor(private opts: { rpcUrl: string; bundleSignerKey: string }) {}
+  private provider: JsonRpcProvider;
+  private signer: Wallet;
+
+  constructor(private opts: { rpcUrl: string; bundleSignerKey: string }) {
+    this.provider = new JsonRpcProvider(opts.rpcUrl);
+    this.signer = new Wallet(opts.bundleSignerKey, this.provider);
+  }
 
   async sendPrivateTx(
     p: Parameters<Relay["sendPrivateTx"]>[0]
   ): Promise<ExecResult> {
     try {
-      // Initialize provider & signer
-      const provider = new JsonRpcProvider(this.opts.rpcUrl);
-      const signer = new Wallet(this.opts.bundleSignerKey, provider);
-
       const txRequest = {
-        to: signer.address,
+        to: this.signer.address,
         data: p.routeCalldata,
         maxFeePerGas: p.maxFeePerGas,
         maxPriorityFeePerGas: p.maxPriorityFeePerGas,
       } as const;
 
       // Sign and send the transaction as a private tx via Flashbots relay.
-      const signed = await signer.signTransaction(txRequest);
+      const signed = await this.signer.signTransaction(txRequest);
       const body = {
         jsonrpc: "2.0",
         id: 1,
@@ -36,7 +38,7 @@ export class FlashbotsRelay implements Relay {
         params: [signed],
       };
 
-      const signature = await signer.signMessage(
+      const signature = await this.signer.signMessage(
         Buffer.from(JSON.stringify(body))
       );
 
@@ -44,7 +46,7 @@ export class FlashbotsRelay implements Relay {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Flashbots-Signature": `${signer.address}:${signature}`,
+          "X-Flashbots-Signature": `${this.signer.address}:${signature}`,
         },
         body: JSON.stringify(body),
       });
