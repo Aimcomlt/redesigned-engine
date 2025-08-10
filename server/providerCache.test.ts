@@ -13,7 +13,7 @@ describe('provider cache eviction', () => {
   });
 
   test('getProvider evicts providers after TTL', async () => {
-    const { getProvider, destroyProviders } = await import('./index');
+    const { getProvider, destroyProviders } = await import('#server/index');
     const p1 = getProvider('http://localhost:8545');
     const destroySpy = vi.spyOn(p1, 'destroy');
     const p2 = getProvider('http://localhost:8545');
@@ -26,7 +26,7 @@ describe('provider cache eviction', () => {
   });
 
   test('destroyProviders removes expired providers', async () => {
-    const { getProvider, destroyProviders } = await import('./index');
+    const { getProvider, destroyProviders } = await import('#server/index');
     const p1 = getProvider('http://localhost:8545');
     const destroySpy = vi.spyOn(p1, 'destroy');
     vi.advanceTimersByTime(60);

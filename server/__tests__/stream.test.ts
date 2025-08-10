@@ -9,7 +9,7 @@ describe('SSE client metrics', () => {
   test('increments and exposes active client gauge', async () => {
     vi.resetModules();
     process.env.AUTH_TOKEN = 't';
-    const { default: app } = await import('../index');
+    const { default: app } = await import('#server/index');
     const { register } = await import('@/utils/metrics');
     const server = app.listen(0);
 

@@ -1,14 +1,12 @@
 import { describe, test, expect, vi } from 'vitest';
 
-const importServer = () => import('../index');
+const importServer = () => import('#server/index');
 
 describe('environment variables', () => {
   test('exits when AUTH_TOKEN is missing', async () => {
     vi.resetModules();
     delete process.env.AUTH_TOKEN;
-    const exit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-      throw new Error(String(code));
-    }) as any);
+    const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     await expect(importServer()).rejects.toThrow('1');
     expect(exit).toHaveBeenCalledWith(1);
     exit.mockRestore();
@@ -20,9 +18,7 @@ describe('environment variables', () => {
     process.env.EXEC_ENABLED = '1';
     delete process.env.WS_RPC;
     delete process.env.BUNDLE_SIGNER_KEY;
-    const exit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-      throw new Error(String(code));
-    }) as any);
+    const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     await expect(importServer()).rejects.toThrow('1');
     expect(exit).toHaveBeenCalledWith(1);
     exit.mockRestore();
@@ -34,9 +30,7 @@ describe('environment variables', () => {
     process.env.EXEC_ENABLED = '1';
     process.env.WS_RPC = 'ws://localhost';
     delete process.env.BUNDLE_SIGNER_KEY;
-    const exit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-      throw new Error(String(code));
-    }) as any);
+    const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     await expect(importServer()).rejects.toThrow('1');
     expect(exit).toHaveBeenCalledWith(1);
     exit.mockRestore();

@@ -8,7 +8,7 @@ let buildSimulateParams: (body: CandidateParamsInput, candidate: Candidate) => S
 
 beforeAll(async () => {
   process.env.AUTH_TOKEN = 'secret';
-  ({ buildSimulateParams } = await import('./index'));
+  ({ buildSimulateParams } = await import('#server/index'));
 });
 
 test('buildSimulateParams returns SimulateCandidateParams', () => {
