@@ -22,6 +22,7 @@ import {
 import type { Candidate } from "../src/core/candidates";
 import { stream } from "./stream";
 import { execute } from "./routes/execute";
+import { vSafe, ExecuteInput } from "../src/shared/validation/valibot-schemas";
 import { register } from "../src/utils/metrics";
 
 interface CachedProvider {
@@ -148,7 +149,7 @@ app.post("/api/simulate", requireAuth, validateBody(wrap<SimulateRequest>(simula
   res.json(await simulateCandidate(params));
 });
 
-app.post("/api/execute", execute);
+app.post("/api/execute", requireAuth, validateBody((v) => vSafe(ExecuteInput, v)), execute);
 
 app.post(
   "/api/settings",
