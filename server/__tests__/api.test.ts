@@ -75,16 +75,25 @@ describe('API endpoints', () => {
   });
 
   test('POST /api/candidates returns candidates list', async () => {
-    const res = await request(app).post('/api/candidates').send(baseParams);
+    const res = await request(app)
+      .post('/api/candidates')
+      .set('Authorization', 'Bearer t')
+      .send(baseParams);
     expect(res.status).toBe(200);
     const parsed = candidatesResponseSchema.parse(res.body);
     expect(parsed.candidates[0]).toMatchObject({ buy: 'A', sell: 'B', profitUsd: 1 });
+  });
+
+  test('POST /api/candidates returns 401 without token', async () => {
+    const res = await request(app).post('/api/candidates').send(baseParams);
+    expect(res.status).toBe(401);
   });
 
   test('POST /api/simulate returns simulation result', async () => {
     const candidate = { buy: 'A', sell: 'B', profitUsd: 1 };
     const res = await request(app)
       .post('/api/simulate')
+      .set('Authorization', 'Bearer t')
       .send({ candidate, params: baseParams });
     expect(res.status).toBe(200);
     const parsed = simulateResponseSchema.parse(res.body);
@@ -104,6 +113,11 @@ describe('API endpoints', () => {
     process.env.BUNDLE_SIGNER_KEY = '0xabc';
     ({ default: app } = await import('../index'));
     const res = await request(app).post('/api/execute').send(execParams);
+    expect(res.status).toBe(401);
+  });
+
+  test('GET /metrics returns 401 without token', async () => {
+    const res = await request(app).get('/metrics');
     expect(res.status).toBe(401);
   });
 

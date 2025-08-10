@@ -33,8 +33,9 @@ PRIVATE_KEY	Wallet private key used for execution
 CHAIN_ID	Target chain ID
 MIN_PROFIT_USD	Minimum USD profit required to trade
 SLIPPAGE_BPS	Slippage tolerance in basis points
-AUTH_TOKEN      Bearer token required for `/api/execute`; requests missing or
-                with invalid `Authorization` headers receive a 401 response
+AUTH_TOKEN      Bearer token required for `/api/execute`, `/api/stream`,
+                `/api/candidates`, `/api/simulate`, and `/metrics`; requests
+                missing or with invalid `Authorization` headers receive a 401 response
 EXEC_ENABLED    Set to `1` to enable `/api/execute`; requires `WS_RPC` and
                 `BUNDLE_SIGNER_KEY`
   WS_RPC          WebSocket RPC endpoint for transaction submission; required
@@ -78,7 +79,8 @@ await main({
   minProfitUsd: 5
 });
 HTTP API
-The server exposes HTTP endpoints for candidate discovery, simulation, execution, and streaming updates.
+The server exposes HTTP endpoints for candidate discovery, simulation, execution, and streaming updates. All endpoints require
+a valid `Authorization: Bearer $AUTH_TOKEN` header and are rate-limited to 100 requests per minute per IP.
 
 ### `POST /api/candidates`
 Returns a list of potential arbitrage trades.
@@ -103,6 +105,7 @@ Returns a list of potential arbitrage trades.
 
 ```bash
 curl -X POST http://localhost:3001/api/candidates \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"providerUrl":"https://rpc.example","venues":[{"name":"uniV2","type":"v2","address":"0x..."}],"amountIn":"1000000000000000000","token0":{"decimals":18,"priceUsd":"1000000000000000000"},"token1":{"decimals":18,"priceUsd":"1000000000000000000"},"slippageBps":50,"gasUnits":"200000","ethUsd":3200,"minProfitUsd":5}'
 ```
@@ -123,6 +126,7 @@ Simulates profit for a specific candidate.
 
 ```bash
 curl -X POST http://localhost:3001/api/simulate \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"candidate":{"buy":"0x...","sell":"0x...","profitUsd":0},"params":{"providerUrl":"https://rpc.example","venues":[{"name":"uniV2","type":"v2","address":"0x..."}],"amountIn":"1000000000000000000","token0":{"decimals":18,"priceUsd":"1000000000000000000"},"token1":{"decimals":18,"priceUsd":"1000000000000000000"},"slippageBps":50,"gasUnits":"200000","ethUsd":3200,"minProfitUsd":5}}'
 ```
@@ -148,7 +152,7 @@ curl -X POST http://localhost:3001/api/execute \
 Server-Sent Events stream providing live `block`, `candidate`, and periodic `heartbeat` messages every 15 seconds.
 
 ```bash
-curl -N http://localhost:3001/api/stream
+curl -H "Authorization: Bearer $AUTH_TOKEN" -N http://localhost:3001/api/stream
 ```
 
 Clients should reconnect when the connection closes. Browsers using
@@ -156,13 +160,22 @@ Clients should reconnect when the connection closes. Browsers using
 disconnect.
 
 ```js
-const stream = new EventSource('http://localhost:3001/api/stream');
+const stream = new EventSource('http://localhost:3001/api/stream', {
+  headers: { Authorization: `Bearer ${token}` },
+} as any);
 stream.addEventListener('heartbeat', () => {
   // heartbeat received – connection alive
 });
 stream.addEventListener('block', (e) => {
   console.log('new block', JSON.parse(e.data));
 });
+```
+
+### `GET /metrics`
+Exposes Prometheus metrics for scraping.
+
+```bash
+curl -H "Authorization: Bearer $AUTH_TOKEN" http://localhost:3001/metrics
 ```
 
 React App
