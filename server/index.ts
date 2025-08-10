@@ -69,20 +69,23 @@ process.on("SIGINT", destroyProviders);
 process.on("SIGTERM", destroyProviders);
 process.on("exit", destroyProviders);
 
-const requireEnv = (name: string) => {
-  const v = process.env[name];
-  if (!v) {
-    logger.error(`Missing required environment variable ${name}`);
-    process.exit(1);
-  }
-  return v;
-};
+function assertEnv(): void {
+  const ensure = (name: string) => {
+    if (!process.env[name]) {
+      logger.error(`Missing required environment variable ${name}`);
+      process.exit(1);
+      throw new Error("1");
+    }
+  };
 
-requireEnv("AUTH_TOKEN");
-if (process.env.EXEC_ENABLED === "1") {
-  requireEnv("WS_RPC");
-  requireEnv("BUNDLE_SIGNER_KEY");
+  ensure("AUTH_TOKEN");
+  if (process.env.EXEC_ENABLED === "1") {
+    ensure("WS_RPC");
+    ensure("BUNDLE_SIGNER_KEY");
+  }
 }
+
+assertEnv();
 
 const wrap = <T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { message: string } } }) => (v: unknown) => {
   const r = schema.safeParse(v);

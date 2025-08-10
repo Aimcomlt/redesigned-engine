@@ -79,7 +79,7 @@ describe('API endpoints', () => {
       __esModule: true,
       default: vi.fn(async () => {}),
     }));
-    ({ default: app } = await import('../index'));
+    ({ default: app } = await import('#server/index'));
   });
 
   test('POST /api/candidates returns candidates list', async () => {
@@ -122,7 +122,7 @@ describe('API endpoints', () => {
     process.env.AUTH_TOKEN = 't';
     process.env.WS_RPC = 'ws://localhost';
     process.env.BUNDLE_SIGNER_KEY = '0xabc';
-    ({ default: app } = await import('../index'));
+    ({ default: app } = await import('#server/index'));
     const res = await request(app).post('/api/execute').send(execParams);
     expect(res.status).toBe(401);
   });
@@ -133,7 +133,7 @@ describe('API endpoints', () => {
     process.env.AUTH_TOKEN = 't';
     process.env.WS_RPC = 'ws://localhost';
     process.env.BUNDLE_SIGNER_KEY = '0xabc';
-    ({ default: app } = await import('../index'));
+    ({ default: app } = await import('#server/index'));
     const res = await request(app)
       .post('/api/execute')
       .set('Authorization', 'Bearer t')
@@ -183,7 +183,7 @@ describe('API endpoints', () => {
     process.env.AUTH_TOKEN = 't';
     process.env.WS_RPC = 'ws://localhost';
     process.env.BUNDLE_SIGNER_KEY = '0xabc';
-    ({ default: app } = await import('../index'));
+    ({ default: app } = await import('#server/index'));
     const res = await request(app)
       .post('/api/execute')
       .set('Authorization', 'Bearer t')
