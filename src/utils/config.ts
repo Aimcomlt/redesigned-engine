@@ -3,17 +3,29 @@ import { z } from 'zod';
 
 dotenv.config();
 
-const schema = z.object({
-  RPC_URL: z.string().url(),
-  PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
-  CHAIN_ID: z.coerce.number().int().positive().default(1),
-  MIN_PROFIT_USD: z.coerce.number().nonnegative(),
-  SLIPPAGE_BPS: z.coerce.number().int().nonnegative(),
-  AUTH_TOKEN: z.string().optional(),
-  EXEC_ENABLED: z.enum(['0', '1']).optional(),
-  WS_RPC: z.string().url().optional(),
-  BUNDLE_SIGNER_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional()
-});
+const schema = z
+  .object({
+    RPC_URL: z.string().url(),
+    PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+    CHAIN_ID: z.coerce.number().int().positive().default(1),
+    MIN_PROFIT_USD: z.coerce.number().nonnegative(),
+    SLIPPAGE_BPS: z.coerce.number().int().nonnegative(),
+    AUTH_TOKEN: z.string().optional(),
+    EXEC_ENABLED: z.enum(['0', '1']).optional(),
+    WS_RPC: z.string().url().optional(),
+    BUNDLE_SIGNER_KEY: z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+  })
+  .refine(env => env.EXEC_ENABLED !== '1' || env.WS_RPC, {
+    message: 'WS_RPC is required when EXEC_ENABLED=1',
+    path: ['WS_RPC'],
+  })
+  .refine(env => env.EXEC_ENABLED !== '1' || env.BUNDLE_SIGNER_KEY, {
+    message: 'BUNDLE_SIGNER_KEY is required when EXEC_ENABLED=1',
+    path: ['BUNDLE_SIGNER_KEY'],
+  });
 
 export type Config = {
   rpcUrl: string;
