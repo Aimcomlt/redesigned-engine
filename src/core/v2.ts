@@ -11,6 +11,8 @@ const PAIR_ABI = [
   'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)'
 ];
 
+const PRICE_SCALE = 1_000_000n;
+
 export interface V2Quote {
   token0: string;
   token1: string;
@@ -40,10 +42,13 @@ export async function getV2Quote(
   const [reserve0, reserve1] = reserves;
 
   invariant(reserve0 > 0n && reserve1 > 0n, 'Pool has no liquidity');
-
-  const fee = 1 - feeBps / 10_000;
-  const price0 = (Number(reserve1) / Number(reserve0)) * fee;
-  const price1 = (Number(reserve0) / Number(reserve1)) * fee;
+  const feeFactor = 10_000n - BigInt(feeBps);
+  const price0Big =
+    (reserve1 * feeFactor * PRICE_SCALE) / (reserve0 * 10_000n);
+  const price1Big =
+    (reserve0 * feeFactor * PRICE_SCALE) / (reserve1 * 10_000n);
+  const price0 = Number(price0Big) / Number(PRICE_SCALE);
+  const price1 = Number(price1Big) / Number(PRICE_SCALE);
 
   const quote = { token0, token1, reserve0, reserve1, price0, price1 };
   engineEvents.emit('quote', { type: 'v2', pair, quote });
@@ -97,10 +102,14 @@ export function simulateV2Swap({
   const newReserve0 = quote.reserve0 + amountInWithFee;
   const newReserve1 = k / newReserve0;
   const amountOut = quote.reserve1 - newReserve1;
-  const executionPrice = Number(amountOut) / Number(amountIn);
+
+  const executionPriceScaled = (amountOut * PRICE_SCALE) / amountIn;
+  const executionPrice = Number(executionPriceScaled) / Number(PRICE_SCALE);
   const ok = checkSlippage(quote.price0, executionPrice, slippageBps);
-  const idealOut = Number(amountIn) * quote.price0;
-  const expectedProfit = Number(amountOut) - idealOut;
+
+  const price0Scaled = BigInt(Math.round(quote.price0 * Number(PRICE_SCALE)));
+  const idealOut = (amountIn * price0Scaled) / PRICE_SCALE;
+  const expectedProfit = Number(amountOut - idealOut);
   return { ok, expectedProfit };
 }
 export interface SubmitV2SwapParams {
