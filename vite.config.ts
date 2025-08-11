@@ -1,39 +1,24 @@
-import path from 'node:path'
+import { fileURLToPath, URL } from 'node:url'
 import react from '@vitejs/plugin-react'
+import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tsconfigPaths()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '#server': path.resolve(__dirname, 'server')
-    }
-  },
-  esbuild: {
-    jsx: 'automatic',
-    include: [
-      /src\/.*\.(tsx|ts|jsx|js)$/,
-      /server\/.*\.(tsx|ts|jsx|js)$/,
-      /tests\/.*\.(tsx|ts|jsx|js)$/
-    ],
-    loader: 'tsx'
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        '.tsx': 'tsx',
-        '.ts': 'ts',
-        '.jsx': 'jsx',
-        '.js': 'jsx'
-      }
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '#server': fileURLToPath(new URL('./server', import.meta.url)),
+    },
   },
   test: {
-    projects: [
-      { environment: 'node', include: ['server/**/*.ts', 'tests/**/*.ts'] },
-      { environment: 'jsdom', include: ['src/**/*.ts', 'src/**/*.tsx'] }
-    ]
-  }
+    include: ['**/*.{test,spec}.{ts,tsx,js,jsx}'],
+    exclude: ['node_modules/**', 'dist/**', '.next/**', 'coverage/**'],
+    environment: 'node',
+    environmentMatchGlobs: [['src/**', 'jsdom']],
+    clearMocks: true,
+    restoreMocks: true,
+    mockReset: true,
+  },
 })
 
